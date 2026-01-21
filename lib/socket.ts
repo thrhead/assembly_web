@@ -25,10 +25,40 @@ export const initSocketServer = (httpServer: HTTPServer): SocketIOServer => {
     io.on('connection', (socket: Socket) => {
         socket.on('join:user', (userId: string) => {
             socket.join(`user:${userId}`)
+            console.log(`👤 User ${userId} joined their personal room`)
         })
 
         socket.on('join:team', (teamId: string) => {
             socket.join(`team:${teamId}`)
+            console.log(`👥 Socket joined team room: team:${teamId}`)
+        })
+
+        // Job/Chat Room Support
+        socket.on('join:job', (jobId: string) => {
+            socket.join(`job:${jobId}`)
+            console.log(`💬 Socket joined job room: job:${jobId}`)
+        })
+
+        // Handle sending messages (Real-time distribution)
+        // Note: Persistence should ideally happen via API call, but we can handle it here too
+        socket.on('send:message', (message: any) => {
+            // Broadcast to the specific job room or user
+            if (message.jobId) {
+                socket.to(`job:${message.jobId}`).emit('receive:message', message)
+            } else if (message.receiverId) {
+                socket.to(`user:${message.receiverId}`).emit('receive:message', message)
+            }
+        })
+
+        // Typing Indicators
+        socket.on('typing:start', (data: { roomId: string, userId: string, isJob: boolean }) => {
+            const room = data.isJob ? `job:${data.roomId}` : `user:${data.roomId}`; // For direct, roomId is receiverId logic needs refinement usually, but keeping simple
+            socket.to(room).emit('typing:start', { userId: data.userId, roomId: data.roomId })
+        })
+
+        socket.on('typing:stop', (data: { roomId: string, userId: string, isJob: boolean }) => {
+            const room = data.isJob ? `job:${data.roomId}` : `user:${data.roomId}`;
+            socket.to(room).emit('typing:stop', { userId: data.userId, roomId: data.roomId })
         })
     })
 
@@ -48,6 +78,11 @@ export const emitToUser = (userId: string, event: string, data: Record<string, u
 export const emitToTeam = (teamId: string, event: string, data: Record<string, unknown>) => {
     if (!global.io) return
     global.io.to(`team:${teamId}`).emit(event, data)
+}
+
+export const emitToJob = (jobId: string, event: string, data: Record<string, unknown>) => {
+    if (!global.io) return
+    global.io.to(`job:${jobId}`).emit(event, data)
 }
 
 export const broadcast = (event: string, data: Record<string, unknown>) => {

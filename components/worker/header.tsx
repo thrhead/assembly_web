@@ -12,6 +12,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { NotificationDropdown } from '@/components/notifications/notification-dropdown'
+import { useNetwork } from '@/hooks/use-network'
+import { WifiOffIcon } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 
 interface WorkerHeaderProps {
   onMenuClick: () => void
@@ -19,6 +22,7 @@ interface WorkerHeaderProps {
 
 export function WorkerHeader({ onMenuClick }: WorkerHeaderProps) {
   const { data: session } = useSession()
+  const isOnline = useNetwork()
 
   return (
     <header className="h-16 border-b bg-white flex items-center justify-between px-4 lg:px-6">
@@ -27,6 +31,12 @@ export function WorkerHeader({ onMenuClick }: WorkerHeaderProps) {
           <MenuIcon className="h-5 w-5" />
         </Button>
         <h1 className="text-xl font-bold text-indigo-600">Montaj Takip</h1>
+        {!isOnline && (
+          <Badge variant="destructive" className="gap-1 animate-pulse">
+            <WifiOffIcon className="h-3 w-3" />
+            Çevrimdışı
+          </Badge>
+        )}
       </div>
 
       <div className="flex items-center gap-2">

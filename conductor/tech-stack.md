@@ -13,12 +13,16 @@
 - **State Management:** Zustand, React Context
 - **Forms:** React Hook Form, Zod Validation
 - **Visualization:** Recharts (Charts), Leaflet (Maps)
+- **Offline Storage:** Dexie.js (IndexedDB wrapper)
+- **Security:** Crypto-js (Client-side Encryption)
+- **Offline Sync:** Global API Interceptor (Fetch wrapper) & Dexie Sync Queue
 
 ## 3. Mobile (App)
 - **Navigation:** React Navigation v7
-- **Local Storage:** AsyncStorage
+- **Local Storage:** AsyncStorage (Offline Cache)
 - **Networking:** Axios, Socket.IO Client, @react-native-community/netinfo
 - **UI:** React Native SVG, Expo Linear Gradient
+- **Security:** Crypto-js (E2E Encryption)
 
 ## 4. Backend & Database
 - **API:** Next.js Server Actions & API Routes

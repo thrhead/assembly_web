@@ -30,8 +30,9 @@ Sistem, hiyerarşik bir kullanıcı yapısına sahiptir:
 - Montaj bazlı detaylı maliyet analizi.
 
 ### Mobil Saha Operasyonları
-- **Cross-Platform:** iOS ve Android uyumlu (React Native).
-- **Çevrimdışı Mod (Offline Mode):** Tam entegrasyon tamamlandı. Bağlantı olmadığında veriler yerel olarak saklanır ve bağlantı sağlandığında otomatik senkronize edilir.
+- **Cross-Platform:** iOS ve Android uyumlu (React Native) ve Tam Özellikli Web PWA.
+- **Çevrimdışı Mod (Offline Mode):** Web ve Mobil tarafında tam eşitlik sağlandı. İnternet yokken tüm kritik işlemler (İş kapatma, masraf, mesajlaşma) kuyruğa alınır ve bağlantı geldiğinde otomatik olarak arka planda senkronize edilir.
+- **Güvenli Mesajlaşma:** Saha ekipleri ve yöneticiler arasında uçtan uca şifreli (E2E Encrypted), gerçek zamanlı ve çevrimdışı destekli sohbet modülü.
 - **Medya Entegrasyonu:** İş adımlarına fotoğraf kanıtı ekleme.
 - **Lokasyon:** Navigasyon ve konum doğrulama.
 

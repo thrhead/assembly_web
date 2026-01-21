@@ -11,7 +11,7 @@
 - [ ] Task: Conductor - User Manual Verification 'Altyapı ve Veritabanı' (Protocol in workflow.md)
 
 ## Phase 2: API ve Token Yönetimi
-- [ ] Task: Token Kayıt API'si
+- [~] Task: Token Kayıt API'si
   - [ ] Subtask: `POST /api/user/push-token` endpoint'ini oluştur (Token ekleme).
   - [ ] Subtask: `DELETE /api/user/push-token` endpoint'ini oluştur (Token silme/logout).
 - [ ] Task: Bildirim Tetikleyicileri Entegrasyonu (Trigger Points)

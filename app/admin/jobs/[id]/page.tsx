@@ -110,6 +110,15 @@ export default async function AdminJobDetailsPage(props: {
                 workers={workers}
                 teams={teams}
             />
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>İş Sohbeti</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <ChatPanel jobId={params.id} title={job.title} />
+                </CardContent>
+            </Card>
         </div>
     )
 }

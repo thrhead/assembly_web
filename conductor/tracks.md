@@ -4,12 +4,14 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Expo Push Notifications Integration
+## [~] Track: Expo Push Notifications Integration
 
 *Link: [./conductor/tracks/push_notifications_20260114/](./conductor/tracks/push_notifications_20260114/)*
 
 ---
 
-## [ ] Track: PWA Offline Sync & Queue System
+## [ ] Track: Mobile UX & Performance Audit Fixes
 
-*Link: [./conductor/tracks/pwa_offline_sync_20260120/](./conductor/tracks/pwa_offline_sync_20260120/)*
+*Link: [./conductor/tracks/mobile_audit_fixes_20260120/](./conductor/tracks/mobile_audit_fixes_20260120/)*
+
+

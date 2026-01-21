@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CameraIcon, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { apiClient } from '@/lib/api-client'
 
 interface CostDialogProps {
     open: boolean
@@ -38,16 +39,12 @@ export function CostDialog({ open, onOpenChange, jobId, onSuccess }: CostDialogP
         setLoading(true)
 
         try {
-            const res = await fetch('/api/worker/costs', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    jobId,
-                    amount: parseFloat(amount),
-                    category,
-                    description,
-                    receiptUrl: receiptUrl || undefined
-                })
+            const res = await apiClient.post('/api/worker/costs', {
+                jobId,
+                amount: parseFloat(amount),
+                category,
+                description,
+                receiptUrl: receiptUrl || undefined
             })
 
             if (!res.ok) {

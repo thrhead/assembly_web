@@ -37,6 +37,8 @@ model User {
   uploadedPhotos     StepPhoto[]
   teamMember         TeamMember[]
   managedTeams       Team[]          @relation("TeamLead")
+  sentMessages       Message[]       @relation("MessageSender")
+  receivedMessages   Message[]       @relation("MessageReceiver")
 
   @@map("users")
 }
@@ -108,6 +110,8 @@ model Job {
   costs            CostTracking[]
   assignments      JobAssignment[]
   steps            JobStep[]
+  messages         Message[]
+  conversations    Conversation[]
   acceptedBy       User?           @relation("JobAccepter", fields: [acceptedById], references: [id])
   creator          User            @relation("JobCreator", fields: [creatorId], references: [id])
   customer         Customer        @relation(fields: [customerId], references: [id])
@@ -289,4 +293,35 @@ model PushToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("push_tokens")
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  jobId     String?
+  title     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  job       Job?      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  messages  Message[]
+
+  @@map("conversations")
+}
+
+model Message {
+  id             String        @id @default(cuid())
+  content        String
+  senderId       String
+  receiverId     String?
+  jobId          String?
+  conversationId String
+  isEncrypted    Boolean       @default(false)
+  sentAt         DateTime      @default(now())
+  deliveredAt    DateTime?
+  readAt         DateTime?
+  conversation   Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  job            Job?          @relation(fields: [jobId], references: [id])
+  receiver       User?         @relation("MessageReceiver", fields: [receiverId], references: [id])
+  sender         User          @relation("MessageSender", fields: [senderId], references: [id])
+
+  @@map("messages")
 }

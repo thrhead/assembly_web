@@ -2,6 +2,7 @@
 
 import { SessionProvider } from 'next-auth/react'
 import { SocketProvider } from './socket-provider'
+import { SyncProvider } from './sync-provider'
 import { NotificationListener } from './notification-listener'
 import { ReactNode } from 'react'
 
@@ -9,8 +10,10 @@ export function Providers({ children }: { children: ReactNode }) {
     return (
         <SessionProvider>
             <SocketProvider>
-                {children}
-                <NotificationListener />
+                <SyncProvider>
+                    {children}
+                    <NotificationListener />
+                </SyncProvider>
             </SocketProvider>
         </SessionProvider>
     )

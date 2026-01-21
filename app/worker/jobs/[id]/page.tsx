@@ -20,6 +20,7 @@ import { BlockTaskDialog } from '@/components/worker/block-task-dialog'
 import { CostDialog } from '@/components/worker/cost-dialog'
 import { toast } from 'sonner'
 import { PhotoUploadDialog } from '@/components/worker/photo-upload-dialog'
+import { apiClient } from '@/lib/api-client'
 
 interface JobDetail {
   id: string
@@ -113,9 +114,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
     }
 
     try {
-      const res = await fetch(`/api/worker/jobs/${params.id}/steps/${stepId}/toggle`, {
-        method: 'POST'
-      })
+      const res = await apiClient.post(`/api/worker/jobs/${params.id}/steps/${stepId}/toggle`, {})
 
       if (!res.ok) {
         const data = await res.json()
@@ -132,9 +131,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
 
   const toggleSubStep = async (stepId: string, subStepId: string) => {
     try {
-      const res = await fetch(`/api/worker/jobs/${params.id}/steps/${stepId}/substeps/${subStepId}/toggle`, {
-        method: 'POST'
-      })
+      const res = await apiClient.post(`/api/worker/jobs/${params.id}/steps/${stepId}/substeps/${subStepId}/toggle`, {})
 
       if (res.ok) {
         fetchJob()
@@ -152,11 +149,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
         ? `/api/worker/jobs/${params.id}/steps/${blockingTask.id}/block`
         : `/api/worker/jobs/${params.id}/steps/${blockingTask.parentId}/substeps/${blockingTask.id}/block`
 
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason, note })
-      })
+      const res = await apiClient.post(url, { reason, note })
 
       if (!res.ok) {
         const data = await res.json()
@@ -172,36 +165,13 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   }
 
   const handlePhotoUpload = async (stepId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // In a real app, we would upload to S3/Cloudinary here.
-    // For this demo, we'll simulate an upload by creating a fake URL or using a data URL if small enough,
-    // BUT the user asked for "resim eklensin", so let's try to be realistic.
-    // Since we don't have a real storage backend setup in the prompt instructions, 
-    // I will use a placeholder URL or a simple data URL for demonstration.
-    // Let's use a prompt to ask for a URL or just simulate it.
-    // Actually, the user might expect a real upload. 
-    // Given the constraints, I'll use a prompt to get a URL from the user OR just mock it.
-    // Let's mock it for now as "uploaded_photo_[timestamp].jpg" and store it in DB.
-    // Wait, I can't display a local file path on another machine.
-    // I will use a simple prompt to ask for a URL for now, or just use a placeholder image service.
-
-    // BETTER APPROACH: Use a simple prompt to input URL for now, as implementing full file upload is complex without backend storage.
-    // However, the UI shows an input type="file". 
-    // Let's change the UI to ask for a URL or just simulate success with a placeholder.
-
-    // Let's use a prompt for URL for simplicity and robustness in this environment.
+    // ... same prompt logic
     const url = prompt("Lütfen fotoğraf URL'sini girin (veya boş bırakıp test için rastgele bir resim kullanın):")
     const finalUrl = url || `https://picsum.photos/seed/${Date.now()}/800/600`
 
     try {
       setUploadingPhoto(stepId)
-      const res = await fetch(`/api/worker/jobs/${params.id}/steps/${stepId}/photos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: finalUrl })
-      })
+      const res = await apiClient.post(`/api/worker/jobs/${params.id}/steps/${stepId}/photos`, { url: finalUrl })
 
       if (res.ok) {
         fetchJob()
@@ -221,9 +191,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
     }
 
     try {
-      const res = await fetch(`/api/worker/jobs/${params.id}/complete`, {
-        method: 'POST'
-      })
+      const res = await apiClient.post(`/api/worker/jobs/${params.id}/complete`, {})
 
       if (res.ok) {
         toast.success('İş başarıyla tamamlandı ve onay için gönderildi!')
@@ -240,11 +208,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
 
   const updateStatus = async (newStatus: string) => {
     try {
-      const res = await fetch(`/api/worker/jobs/${params.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      })
+      const res = await apiClient.patch(`/api/worker/jobs/${params.id}`, { status: newStatus })
 
       if (res.ok) {
         fetchJob()
@@ -536,6 +500,12 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
           )}
         </CardContent>
       </Card>
+
+      {/* Chat Section */}
+      <div className="space-y-4">
+        <h2 className="text-base font-bold text-gray-900 px-1">İş Sohbeti</h2>
+        <ChatPanel jobId={job.id} title={job.title} />
+      </div>
 
       {/* Actions */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t lg:static lg:border-0 lg:bg-transparent lg:p-0 pb-safe z-10">
