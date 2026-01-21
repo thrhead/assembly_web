@@ -22,7 +22,7 @@ export const apiClient = {
             console.log(`[API] Offline - Queueing ${method} request to ${url}`)
             
             await syncManager.addToQueue({
-                type: method,
+                type: method as 'POST' | 'PUT' | 'PATCH' | 'DELETE',
                 url,
                 payload: options.body ? JSON.parse(options.body as string) : undefined
             })
@@ -52,7 +52,7 @@ export const apiClient = {
             if (isWriteOperation) {
                 console.log(`[API] Request failed - Queueing ${method} request to ${url}`)
                 await syncManager.addToQueue({
-                    type: method,
+                    type: method as 'POST' | 'PUT' | 'PATCH' | 'DELETE',
                     url,
                     payload: options.body ? JSON.parse(options.body as string) : undefined
                 })
