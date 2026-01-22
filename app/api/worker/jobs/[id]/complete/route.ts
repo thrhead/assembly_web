@@ -6,6 +6,7 @@ import { JobCompletedPayload } from '@/lib/socket-events'
 import { sendJobCompletedEmail } from '@/lib/email'
 import { notifyAdminsOfJobCompletion } from '@/lib/notifications'
 import cloudinary from '@/lib/cloudinary'
+import { triggerWebhook } from '@/lib/webhook-service'
 
 export async function POST(
   req: Request,
@@ -21,7 +22,6 @@ export async function POST(
     const params = await props.params
     const { id: jobId } = params
 
-    // ... existing job check ...
     const job = await prisma.job.findFirst({
       where: {
         id: jobId,
@@ -51,7 +51,6 @@ export async function POST(
       return NextResponse.json({ error: 'Job not found or access denied' }, { status: 404 })
     }
 
-    // Check if all steps are completed
     const allStepsCompleted = job.steps.every(step => step.isCompleted)
     if (!allStepsCompleted) {
       return NextResponse.json({
@@ -72,7 +71,6 @@ export async function POST(
       }
     }
 
-    // Update job status to COMPLETED
     const updatedJob = await prisma.job.update({
       where: { id: jobId },
       data: {
@@ -84,7 +82,6 @@ export async function POST(
       }
     })
 
-    // Get team lead or admin as approver
     const approver = await prisma.user.findFirst({
       where: {
         role: { in: ['ADMIN', 'MANAGER'] },
@@ -98,7 +95,6 @@ export async function POST(
       }, { status: 500 })
     }
 
-    // Create approval request
     const approval = await prisma.approval.create({
       data: {
         jobId,
@@ -109,7 +105,6 @@ export async function POST(
       }
     })
 
-    // Emit Socket.IO event for real-time notification
     const socketPayload: JobCompletedPayload = {
       jobId: updatedJob.id,
       title: updatedJob.title,
@@ -118,31 +113,41 @@ export async function POST(
     }
 
     try {
-      // Notify job creator
       if (job.creator?.id) {
         emitToUser(job.creator.id, 'job:completed', socketPayload as unknown as Record<string, unknown>)
       }
-
-      // Notify all admins/managers via database notification
       await notifyAdminsOfJobCompletion(jobId)
-
-      // Broadcast to all admins via socket
       broadcast('job:completed', socketPayload as unknown as Record<string, unknown>)
     } catch (socketError) {
       console.error('Socket error (non-fatal):', socketError);
     }
 
-    // Send email notification (async, don't block)
     if (approver.email) {
       sendJobCompletedEmail(approver.email, {
         id: updatedJob.id,
         title: updatedJob.title,
-        customerName: job.customer.company,
+        customerName: job.customer?.company || 'Unknown',
         completedDate: updatedJob.completedDate || new Date(),
         teamName: job.assignments[0]?.team?.name || 'Unknown Team',
         completedBy: session.user.name || session.user.email || 'Unknown'
       }).catch(err => console.error('Email send failed:', err))
     }
+
+    await triggerWebhook('job.completed', {
+      jobId: jobId,
+      title: updatedJob.title,
+      completedBy: {
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email
+      },
+      signatureUrl: updatedJob.signatureUrl,
+      location: {
+        latitude: updatedJob.signatureLatitude,
+        longitude: updatedJob.signatureLongitude
+      },
+      timestamp: updatedJob.completedDate
+    });
 
     return NextResponse.json({
       success: true,

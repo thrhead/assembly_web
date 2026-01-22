@@ -1,21 +1,22 @@
-# Plan: Mobile Feature Parity & Module Migration
+# Plan: Mobile Feature Parity & Module Migration (Orchestrated)
 
 ## Goal
-Migrate all modules, pages, and reports from the web application to the mobile application, ensuring a consistent user experience across platforms.
+Migrate Advanced Modules (Advanced Planning, Team Management) from Web to Mobile with high fidelity and consistent logic.
 
-## Phase 1: Analysis & Mapping
-- [ ] Task: Map all missing web routes to mobile navigation (e.g., Advanced Reports, Team Management details).
-- [ ] Task: Design mobile-responsive layouts for web-only modules.
+## PHASE 1: Planning & Analysis (Orchestrator + Project-Planner)
+- [x] Task: Detailed mapping of "Ekip Yönetimi" features.
+- [x] Task: Alignment of "Gantt/Advanced Planning" UI between Web and Mobile.
 
-## Phase 2: Administrative Modules
-- [ ] Task: Implement "Advanced Planning" tools in mobile.
-- [ ] Task: Add "Comprehensive Reports" (with charts) to the Admin/Manager mobile views.
-- [ ] Task: Migration of "Team Management" and "Template Management" modules.
+## PHASE 2: Core Development (Parallel: Backend + Mobile-Developer)
+- [x] Task: [BACKEND] Create `/api/admin/teams/[id]` and `/api/admin/planning` endpoints for mobile.
+- [x] Task: [MOBILE] Build `TeamManagementScreen` with member lists, roles, and assignment history.
+- [x] Task: [MOBILE] Enhance `AdvancedPlanningScreen` with actual Gantt charts or detailed list view mirroring web.
 
-## Phase 3: Operations & Insights
-- [ ] Task: Port "Advanced Filtering" logic to mobile screens.
-- [ ] Task: Implement dashboard charts (Performance, Cost analysis) using `react-native-chart-kit` or similar.
+## PHASE 3: Polish & UI/UX (Frontend-Specialist)
+- [x] Task: Lucide Icon standardization and micro-animations for tab transitions (Phase 7 of UI/UX Refactor).
+- [x] Task: Responsive layout checks for all new modules.
 
-## Phase 4: Sync & Optimization
-- [ ] Task: Ensure all API integrations are consistent with web logic.
-- [ ] Task: Verify that navigation structure matches `app/[locale]/...` organization.
+## PHASE 4: Verification (Security-Auditor + Test-Engineer)
+- [x] Task: run `security_scan.py` and `lint_runner.py`.
+- [x] Task: Manual audit of team management permissions.
+- [x] Task: Device testing (Light/Dark themes).

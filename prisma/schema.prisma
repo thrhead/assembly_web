@@ -39,6 +39,7 @@ model User {
   managedTeams       Team[]          @relation("TeamLead")
   sentMessages       Message[]       @relation("MessageSender")
   receivedMessages   Message[]       @relation("MessageReceiver")
+  apiKeys            ApiKey[]
 
   @@map("users")
 }
@@ -103,6 +104,8 @@ model Job {
   signatureUrl     String?
   signatureLatitude Float?
   signatureLongitude Float?
+  ganttOrder       Int             @default(0)
+  optimizedOrder   Int?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
   acceptanceStatus String          @default("PENDING")
@@ -138,6 +141,8 @@ model JobStep {
   order           Int
   notes           String?
   photoUrl        String?
+  latitude        Float?
+  longitude       Float?
   approvalStatus  String       @default("PENDING")
   rejectionReason String?
   approvedById    String?
@@ -327,4 +332,29 @@ model Message {
   sender         User          @relation("MessageSender", fields: [senderId], references: [id])
 
   @@map("messages")
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  key       String   @unique // Bu alan hashlenmiş olarak saklanacaktır
+  name      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("api_keys")
+}
+
+model Webhook {
+  id        String   @id @default(cuid())
+  url       String
+  event     String   // örn: "job.updated", "job.completed"
+  secret    String?  // Payloadi imzalamak için opsiyonel secret
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("webhooks")
 }

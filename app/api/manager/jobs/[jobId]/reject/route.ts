@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyAuth } from '@/lib/auth-helper';
 import { sendJobNotification } from '@/lib/notification-helper';
+import { triggerWebhook } from '@/lib/webhook-service';
 import { z } from 'zod';
 
 const rejectSchema = z.object({
@@ -48,6 +49,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ job
             'ERROR',
             `/jobs/${job.id}`
         );
+
+        // Trigger webhook
+        await triggerWebhook('job.rejected', {
+            jobId: job.id,
+            title: job.title,
+            reason: reason,
+            rejectedBy: {
+                id: session.user.id,
+                name: session.user.name,
+                email: session.user.email
+            },
+            timestamp: new Date()
+        });
 
         return NextResponse.json(job);
     } catch (error) {

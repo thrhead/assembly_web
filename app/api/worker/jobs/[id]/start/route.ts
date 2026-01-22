@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyAuth } from '@/lib/auth-helper';
 import { sendAdminNotification } from '@/lib/notification-helper';
+import { triggerWebhook } from '@/lib/webhook-service';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -43,6 +44,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             session.user.id
         );
         console.log('[JOB START] Admin notification sent successfully');
+
+        // Trigger webhook
+        await triggerWebhook('job.started', {
+            jobId: id,
+            worker: {
+                id: session.user.id,
+                name: session.user.name,
+                email: session.user.email
+            },
+            timestamp: updatedJob.startedAt
+        });
 
         return NextResponse.json(updatedJob);
     } catch (error) {

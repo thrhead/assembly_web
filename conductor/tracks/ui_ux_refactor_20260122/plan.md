@@ -37,10 +37,10 @@
   - [x] Subtask: Web: `DialogContent`, `PhotoGallery`, `JobTimeline` ve tüm Sidebar overlay'lerindeki sabit `bg-black/50` gibi Tailwind sınıfları temaya duyarlı (`bg-background/80`, `backdrop-blur`) hale getirildi.
 
 ## Phase 7: Enhanced Mobile Navigation
-- [/] Task: Bottom Nav Modernization
+- [x] Task: Bottom Nav Modernization
   - [x] Subtask: "Hızlı Ekle" (+) butonunun eklenmesi ve tasarımın yenilenmesi.
-  - [ ] Subtask: Aktif sekme animasyonları ve Lucide ikon geçişi.
+  - [x] Subtask: Aktif sekme animasyonları ve Lucide ikon geçişi.
 
 ## Phase 8: Verification
-- [ ] Task: Final Manual Review
-  - [ ] Subtask: Tüm cihazlarda ve temalarda (Açık/Koyu) navigasyonu test et.
+- [x] Task: Final Manual Review
+  - [x] Subtask: Tüm cihazlarda ve temalarda (Açık/Koyu) navigasyonu test et.

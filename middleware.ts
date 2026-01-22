@@ -12,18 +12,28 @@ const ALLOWED_ORIGINS = [
 const intlMiddleware = createMiddleware({
   // A list of all locales that are supported
   locales: ['en', 'tr'],
- 
+
   // Used when no locale matches
   defaultLocale: 'tr',
-  
+
   // Don't prefix the default locale
-  localePrefix: 'as-needed' 
+  localePrefix: 'as-needed'
 });
+
+import { rateLimit } from "@/lib/rate-limit";
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
+  const ip = req.headers.get("x-forwarded-for") || "127.0.0.1";
   const isLoggedIn = !!req.auth;
   const userRole = req.auth?.user?.role;
+
+  // Rate Limit for Auth routes
+  if (pathname.includes("/api/auth") || pathname === "/login") {
+    if (!rateLimit(ip, 50, 60000)) { // 50 requests per minute
+      return new NextResponse("Too Many Requests", { status: 429 });
+    }
+  }
 
   // 1. CORS Handling for API
   if (pathname.startsWith("/api")) {
@@ -80,7 +90,7 @@ export default auth((req) => {
 
   // 3. Internationalization (for non-API routes)
   if (!pathname.startsWith("/api") && !pathname.startsWith("/_next") && !pathname.includes(".")) {
-      return intlMiddleware(req);
+    return intlMiddleware(req);
   }
 
   return NextResponse.next();

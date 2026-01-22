@@ -25,6 +25,8 @@ interface TimelineStep {
     startedAt: Date | null
     completedAt: Date | null
     blockedAt: Date | null
+    latitude?: number | null
+    longitude?: number | null
     blockedReason: string | null
     order: number
     photos?: StepPhoto[]
@@ -178,9 +180,17 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
                                                     </div>
                                                 )}
                                                 {step.completedAt && (
-                                                    <div className="flex items-center gap-2">
-                                                        <CheckCircle className="h-3 w-3 text-green-600" />
-                                                        <span>Tamamlandı: {format(new Date(step.completedAt), 'd MMM, HH:mm', { locale: tr })}</span>
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <CheckCircle className="h-3 w-3 text-green-600" />
+                                                            <span>Tamamlandı: {format(new Date(step.completedAt), 'd MMM, HH:mm', { locale: tr })}</span>
+                                                        </div>
+                                                        {(step.latitude && step.longitude) && (
+                                                            <div className="flex items-center gap-1 text-[10px] text-gray-400 ml-5 bg-gray-50 w-fit px-1 rounded border border-gray-100">
+                                                                <MapPin className="h-2 w-2" />
+                                                                <span>{step.latitude.toFixed(4)}, {step.longitude.toFixed(4)}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                                 {step.blockedAt && (

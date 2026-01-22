@@ -53,6 +53,11 @@ const sidebarItems = [
     icon: BriefcaseIcon
   },
   {
+    title: 'Gelişmiş Planlama',
+    href: '/admin/jobs/gantt',
+    icon: CalendarIcon
+  },
+  {
     title: 'İş Şablonları',
     href: '/admin/templates',
     icon: FileTextIcon
@@ -76,6 +81,11 @@ const sidebarItems = [
     title: 'Performans Raporu',
     href: '/admin/reports/performance',
     icon: PieChartIcon
+  },
+  {
+    title: 'Entegrasyonlar',
+    href: '/admin/integrations/api-keys',
+    icon: GlobeIcon
   }
 ]
 

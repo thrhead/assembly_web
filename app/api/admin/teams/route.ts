@@ -1,65 +1,72 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { verifyAdmin } from '@/lib/auth-helper'
-import { z } from 'zod'
-import { createTeamSchema } from '@/lib/validations'
+import { verifyAuth } from '@/lib/auth-helper'
 
-export async function POST(req: Request) {
+export async function GET(req: Request) {
     try {
-        const session = await verifyAdmin(req)
-        if (!session) {
+        const session = await verifyAuth(req)
+        if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const body = await req.json()
-        const { memberIds, ...teamData } = createTeamSchema.parse(body)
-
-        // Create team
-        const team = await prisma.team.create({
-            data: {
-                ...teamData,
-                isActive: teamData.isActive ?? true
+        const teams = await prisma.team.findMany({
+            include: {
+                _count: {
+                    select: { members: true }
+                },
+                members: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                role: true,
+                                isActive: true
+                            }
+                        }
+                    }
+                },
+                assignments: {
+                    where: {
+                        job: {
+                            status: { in: ['ASSIGNED', 'IN_PROGRESS'] }
+                        }
+                    },
+                    include: {
+                        job: {
+                            select: {
+                                id: true,
+                                title: true,
+                                status: true
+                            }
+                        }
+                    },
+                    take: 1
+                }
+            },
+            orderBy: {
+                name: 'asc'
             }
         })
 
-        // Add members if provided
-        if (memberIds && memberIds.length > 0) {
-            // Check for users already in other teams
-            const existingMembers = await prisma.teamMember.findMany({
-                where: {
-                    userId: { in: memberIds }
-                },
-                include: {
-                    user: { select: { name: true } },
-                    team: { select: { name: true } }
-                }
-            })
+        const formattedTeams = teams.map(team => ({
+            id: team.id,
+            name: team.name,
+            memberCount: team._count.members,
+            members: team.members.map(m => ({
+                id: m.user.id,
+                name: m.user.name,
+                role: m.user.role,
+                isActive: m.user.isActive,
+                isLead: m.isLead
+            })),
+            currentJob: team.assignments[0]?.job || null,
+            status: team.assignments.length > 0 ? 'BUSY' : 'IDLE'
+        }))
 
-            if (existingMembers.length > 0) {
-                const conflicts = existingMembers.map(m => `${m.user.name} (${m.team.name} ekibinde)`).join(', ')
-                return NextResponse.json({
-                    error: `Bu kullanıcılar zaten başka bir ekipte: ${conflicts}`
-                }, { status: 400 })
-            }
-
-            await prisma.teamMember.createMany({
-                data: memberIds.map(userId => ({
-                    teamId: team.id,
-                    userId
-                }))
-            })
-        }
-
-        return NextResponse.json(team, { status: 201 })
-    } catch (error: any) {
-        if (error instanceof z.ZodError) {
-            const errorMessage = error.issues.map((issue: any) => issue.message).join(', ')
-            return NextResponse.json({ error: errorMessage, details: error.issues }, { status: 400 })
-        }
-        if (error.code === 'P2002') {
-            return NextResponse.json({ error: 'Bir kullanıcı birden fazla ekipte olamaz' }, { status: 400 })
-        }
-        console.error('Create team error:', error)
+        return NextResponse.json(formattedTeams)
+    } catch (error) {
+        console.error('Fetch teams error:', error)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }

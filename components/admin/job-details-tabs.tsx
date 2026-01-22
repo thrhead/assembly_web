@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { MapPin, Save } from 'lucide-react'
 import { PDFDownloadButton } from '@/components/pdf-download-button'
 import { ExcelDownloadButton } from '@/components/excel-download-button'
+import { ProformaDownloadButton } from '@/components/proforma-download-button'
 
 // Dynamic imports to avoid SSR issues
 const JobLocationMap = dynamic(
@@ -76,6 +77,7 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
             <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">İş Detayları</h2>
                 <div className="flex gap-2">
+                    <ProformaDownloadButton job={job} />
                     <ExcelDownloadButton type="job" jobId={job.id} />
                     <PDFDownloadButton jobId={job.id} />
                 </div>
@@ -246,6 +248,30 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                                     <span className="text-gray-500">Tamamlanan:</span>
                                     <span className="font-medium text-green-600">{completedSteps}</span>
                                 </div>
+                                {job.status === 'IN_PROGRESS' && job.startedAt && completedSteps > 0 && (
+                                    <div className="mt-4 pt-4 border-t space-y-2">
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-gray-500">Tahmini Bitiş:</span>
+                                            <span className="font-bold text-blue-600">
+                                                {(() => {
+                                                    const start = new Date(job.startedAt).getTime()
+                                                    const now = new Date().getTime()
+                                                    const elapsed = now - start
+                                                    const progress = completedSteps / totalSteps
+                                                    const totalEst = elapsed / progress
+                                                    const finishDate = new Date(start + totalEst)
+                                                    return finishDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+                                                })()}
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                                            <div
+                                                className="bg-blue-500 h-full transition-all duration-500"
+                                                style={{ width: `${(completedSteps / totalSteps) * 100}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Bloklanan:</span>
                                     <span className="font-medium text-red-600">{blockedSteps}</span>
@@ -290,9 +316,17 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                                             className="w-full h-auto object-contain"
                                         />
                                     </div>
-                                    <p className="text-xs text-gray-500 mt-2">
-                                        İmza Tarihi: {job.completedDate ? new Date(job.completedDate).toLocaleString('tr-TR') : '-'}
-                                    </p>
+                                    <div className="mt-4 flex flex-col items-center gap-2">
+                                        <p className="text-xs text-gray-500">
+                                            İmza Tarihi: {job.completedDate ? new Date(job.completedDate).toLocaleString('tr-TR') : '-'}
+                                        </p>
+                                        {(job.signatureLatitude && job.signatureLongitude) && (
+                                            <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                                <span className="font-medium">GPS:</span>
+                                                <span>{job.signatureLatitude.toFixed(6)}, {job.signatureLongitude.toFixed(6)}</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </CardContent>
                             </Card>
                         )}
