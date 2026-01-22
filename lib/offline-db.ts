@@ -19,6 +19,7 @@ export interface SyncQueueItem {
     url: string
     payload: any
     createdAt: number
+    retryCount?: number
 }
 
 class OfflineDatabase extends Dexie {
