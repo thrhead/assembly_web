@@ -43,6 +43,7 @@ interface JobDetail {
   location: string | null
   scheduledDate: string | null
   completedDate: string | null
+  signatureUrl: string | null
   customer: {
     company: string
     address: string | null
@@ -348,6 +349,19 @@ export default function CustomerJobDetailPage(props: { params: Promise<{ id: str
             <div className="pt-2 border-t">
               <p className="font-medium text-sm text-gray-900 mb-1">Açıklama</p>
               <p className="text-sm text-gray-600">{job.description}</p>
+            </div>
+          )}
+
+          {job.signatureUrl && (
+            <div className="pt-4 border-t">
+              <p className="font-medium text-sm text-gray-900 mb-2">Müşteri İmzası</p>
+              <div className="border rounded-lg p-2 bg-white max-w-[300px]">
+                <img
+                  src={job.signatureUrl}
+                  alt="Dijital İmza"
+                  className="w-full h-auto object-contain"
+                />
+              </div>
             </div>
           )}
         </CardContent>

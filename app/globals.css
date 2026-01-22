@@ -175,6 +175,6 @@
 /* Mobile Font Size Adjustment */
 @media (max-width: 640px) {
   html {
-    font-size: 14px;
+    font-size: 16px;
   }
 }

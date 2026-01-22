@@ -276,6 +276,26 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {job.signatureUrl && (
+                            <Card className="md:col-span-2">
+                                <CardHeader>
+                                    <CardTitle className="text-base">Müşteri İmzası</CardTitle>
+                                </CardHeader>
+                                <CardContent className="flex flex-col items-center">
+                                    <div className="border rounded-lg p-2 bg-white max-w-md w-full">
+                                        <img
+                                            src={job.signatureUrl}
+                                            alt="Customer Signature"
+                                            className="w-full h-auto object-contain"
+                                        />
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-2">
+                                        İmza Tarihi: {job.completedDate ? new Date(job.completedDate).toLocaleString('tr-TR') : '-'}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
                 </TabsContent>
             </Tabs >

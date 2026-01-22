@@ -5,6 +5,7 @@ import { emitToUser, broadcast } from '@/lib/socket'
 import { JobCompletedPayload } from '@/lib/socket-events'
 import { sendJobCompletedEmail } from '@/lib/email'
 import { notifyAdminsOfJobCompletion } from '@/lib/notifications'
+import cloudinary from '@/lib/cloudinary'
 
 export async function POST(
   req: Request,
@@ -16,10 +17,11 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { signature, signatureLatitude, signatureLongitude } = await req.json()
     const params = await props.params
     const { id: jobId } = params
 
-    // Check if job exists and user has access
+    // ... existing job check ...
     const job = await prisma.job.findFirst({
       where: {
         id: jobId,
@@ -57,12 +59,28 @@ export async function POST(
       }, { status: 400 })
     }
 
+    let signatureUrl = null
+    if (signature) {
+      try {
+        const uploadResponse = await cloudinary.uploader.upload(signature, {
+          folder: 'signatures',
+          resource_type: 'image'
+        })
+        signatureUrl = uploadResponse.secure_url
+      } catch (uploadError) {
+        console.error('Signature upload error:', uploadError)
+      }
+    }
+
     // Update job status to COMPLETED
     const updatedJob = await prisma.job.update({
       where: { id: jobId },
       data: {
         status: 'COMPLETED',
-        completedDate: new Date()
+        completedDate: new Date(),
+        signatureUrl,
+        signatureLatitude: signatureLatitude ? parseFloat(signatureLatitude) : null,
+        signatureLongitude: signatureLongitude ? parseFloat(signatureLongitude) : null
       }
     })
 

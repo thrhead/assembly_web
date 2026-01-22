@@ -11,6 +11,7 @@ export interface JobReportData {
     location: string
     scheduledDate: Date | null
     completedDate: Date | null
+    signatureUrl?: string | null
     customer: {
         company: string
         address: string
@@ -216,6 +217,34 @@ export function generateJobPDF(data: JobReportData) {
             headStyles: { fillColor: [22, 163, 74] },
             footStyles: { fillColor: [248, 250, 252], fontStyle: 'bold' }
         })
+    }
+
+    // Signature
+    if (data.signatureUrl) {
+        // Add new page if not enough space (signature needs ~50-60 units)
+        if (yPos > 230) {
+            doc.addPage()
+            yPos = 20
+        }
+
+        yPos += 10
+        doc.setFontSize(14)
+        doc.text('Müşteri Onayı ve İmza', 20, yPos)
+        yPos += 10
+
+        try {
+            // Using addImage with the URL
+            doc.addImage(data.signatureUrl, 'PNG', 20, yPos, 60, 30)
+            yPos += 35
+        } catch (e) {
+            console.error('Error adding signature to PDF:', e)
+            doc.setFontSize(10)
+            doc.text('[Dijital İmza Mevcut]', 20, yPos)
+            yPos += 10
+        }
+
+        doc.setFontSize(10)
+        doc.text(`Tarih: ${data.completedDate ? format(new Date(data.completedDate), 'dd MMMM yyyy, HH:mm', { locale: tr }) : '-'}`, 20, yPos)
     }
 
     // Footer with page numbers
