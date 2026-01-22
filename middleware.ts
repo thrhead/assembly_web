@@ -54,23 +54,26 @@ export default auth((req) => {
     }
 
     // Protection: Ensure users only access their role-specific pages
-    // TODO: Add locale support to these checks if paths change
-    if (pathname.startsWith("/admin") && userRole !== "ADMIN") {
+    // We need to account for locale prefix (e.g., /tr/admin, /en/admin)
+    const pathWithoutLocale = pathname.replace(/^\/(tr|en)/, "") || "/";
+
+    if (pathWithoutLocale.startsWith("/admin") && userRole !== "ADMIN") {
       return NextResponse.redirect(new URL("/login", req.url));
     }
-    if (pathname.startsWith("/manager") && !["ADMIN", "MANAGER"].includes(userRole!)) {
+    if (pathWithoutLocale.startsWith("/manager") && !["ADMIN", "MANAGER"].includes(userRole!)) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
-    if (pathname.startsWith("/worker") && !["ADMIN", "MANAGER", "WORKER", "TEAM_LEAD"].includes(userRole!)) {
+    if (pathWithoutLocale.startsWith("/worker") && !["ADMIN", "MANAGER", "WORKER", "TEAM_LEAD"].includes(userRole!)) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
-    if (pathname.startsWith("/customer") && userRole !== "CUSTOMER") {
+    if (pathWithoutLocale.startsWith("/customer") && userRole !== "CUSTOMER") {
       return NextResponse.redirect(new URL("/login", req.url));
     }
   } else {
     // If NOT logged in and trying to access protected pages
+    const pathWithoutLocale = pathname.replace(/^\/(tr|en)/, "") || "/";
     const protectedPaths = ["/admin", "/manager", "/worker", "/customer"];
-    if (protectedPaths.some(path => pathname.startsWith(path))) {
+    if (protectedPaths.some(path => pathWithoutLocale.startsWith(path))) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
   }

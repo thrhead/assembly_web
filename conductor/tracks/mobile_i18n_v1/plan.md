@@ -4,19 +4,19 @@
 Implement a robust multi-language system (TR/EN) for the React Native (Expo) application, consistent with the web application's localization.
 
 ## Phase 1: Setup
-- [ ] Task: Install `i18n-js` or `react-i18next` and `expo-localization`.
-- [ ] Task: Create `src/locales` directory with `tr.json` and `en.json`.
-- [ ] Task: Configure i18n initialization in `App.js`.
+- [x] Task: Install `i18n-js` or `react-i18next` and `expo-localization`.
+- [x] Task: Create `src/locales` directory with `tr.json` and `en.json`.
+- [x] Task: Configure i18n initialization in `App.js`.
 
 ## Phase 2: Translation Extraction
-- [ ] Task: Move all hardcoded strings from `LoginScreen`, `ProfileScreen` to locale files.
-- [ ] Task: Translate `JobDetailScreen` and components.
-- [ ] Task: Localize validation messages and date formats.
+- [x] Task: Move all hardcoded strings from `LoginScreen`, `ProfileScreen` to locale files.
+- [x] Task: Translate `JobDetailScreen` and components.
+- [x] Task: Localize validation messages and date formats.
 
 ## Phase 3: Language Selection
-- [ ] Task: Add a language switcher in the Profile/Settings screen.
-- [ ] Task: Persist user language preference using `AsyncStorage`.
+- [x] Task: Add a language switcher in the Profile/Settings screen.
+- [x] Task: Persist user language preference using `AsyncStorage`.
 
 ## Phase 4: Verification
-- [ ] Task: Verify all screens update instantly on language change.
-- [ ] Task: Ensure consistency with web translation keys.
+- [x] Task: Verify all screens update instantly on language change.
+- [x] Task: Ensure consistency with web translation keys.

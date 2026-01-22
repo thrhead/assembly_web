@@ -3,14 +3,18 @@
 This file tracks all major tracks for the project. Each track has its own detailed plan in its respective folder.
 
 ## Active Tracks
+n---
+
+n---
+
+## [ ] Track: Mobile i18n Infrastructure
+
+*Link: [./conductor/tracks/mobile_i18n_v1/](./conductor/tracks/mobile_i18n_v1/)*
 
 ---
 
-## [ ] Track: UI/UX & Performance Refactor
-
-*Link: [./conductor/tracks/ui_ux_refactor_20260122/](./conductor/tracks/ui_ux_refactor_20260122/)*
-
 ---
+
 
 ## Pending Tracks
 
@@ -35,14 +39,18 @@ This file tracks all major tracks for the project. Each track has its own detail
 ---
 
 ## Archived Tracks
+n---
+
+## [x] Track: UI/UX & Performance Refactor
+
+*Link: [./conductor/archive/ui_ux_refactor_20260122/](./conductor/archive/ui_ux_refactor_20260122/)*
+
+---
+n---
+
 
 ---
 
-## [x] Track: i18n Migration Phase 2
-
-*Link: [./conductor/archive/i18n_migration_phase2/](./conductor/archive/i18n_migration_phase2/)*
-
----
 
 ## [x] Track: i18n & Localization Infrastructure
 
@@ -51,6 +59,15 @@ This file tracks all major tracks for the project. Each track has its own detail
 ---
 
 ## Archived Tracks
+n---
+
+## [x] Track: UI/UX & Performance Refactor
+
+*Link: [./conductor/archive/ui_ux_refactor_20260122/](./conductor/archive/ui_ux_refactor_20260122/)*
+
+---
+n---
+
 
 ---
 
@@ -79,6 +96,15 @@ This file tracks all major tracks for the project. Each track has its own detail
 ---
 
 ## Archived Tracks
+n---
+
+## [x] Track: UI/UX & Performance Refactor
+
+*Link: [./conductor/archive/ui_ux_refactor_20260122/](./conductor/archive/ui_ux_refactor_20260122/)*
+
+---
+n---
+
 
 ---
 

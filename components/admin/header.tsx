@@ -13,7 +13,7 @@ import {
 import { signOut } from 'next-auth/react'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/lib/navigation'
 
 interface AdminHeaderProps {
   onMenuClick?: () => void
@@ -44,7 +44,7 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
     }
   }
   return (
-    <div className="h-16 border-b bg-white flex items-center justify-between px-4 sticky top-0 z-50">
+    <div className="h-16 border-b bg-white flex items-center justify-between px-4 sticky top-0 z-40">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
           <MenuIcon className="h-5 w-5" />
