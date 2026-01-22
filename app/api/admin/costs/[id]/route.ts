@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
+import { sendUserNotification } from '@/lib/notification-helper'
 
 const updateCostSchema = z.object({
     status: z.enum(['APPROVED', 'REJECTED']),
@@ -39,17 +40,15 @@ export async function PATCH(
         // Notify the user who created the cost
         if (cost.createdById) {
             const isApproved = data.status === 'APPROVED'
-            await prisma.notification.create({
-                data: {
-                    userId: cost.createdById,
-                    title: isApproved ? 'Masraf Onaylandı ✅' : 'Masraf Reddedildi ❌',
-                    message: isApproved
-                        ? `"${cost.job.title}" işi için girilen ${cost.amount} ${cost.currency} tutarındaki masraf onaylandı.`
-                        : `"${cost.job.title}" işi için girilen ${cost.amount} ${cost.currency} tutarındaki masraf reddedildi. Sebep: ${data.rejectionReason}`,
-                    type: isApproved ? 'SUCCESS' : 'ERROR',
-                    link: `/jobs/${cost.jobId}`
-                }
-            })
+            await sendUserNotification(
+                cost.createdById,
+                isApproved ? 'Masraf Onaylandı ✅' : 'Masraf Reddedildi ❌',
+                isApproved
+                    ? `"${cost.job.title}" işi için girilen ${cost.amount} ${cost.currency} tutarındaki masraf onaylandı.`
+                    : `"${cost.job.title}" işi için girilen ${cost.amount} ${cost.currency} tutarındaki masraf reddedildi. Sebep: ${data.rejectionReason}`,
+                isApproved ? 'SUCCESS' : 'ERROR',
+                `/worker/jobs/${cost.jobId}` // Redirect to job detail on mobile/web
+            )
         }
 
         return NextResponse.json(cost)

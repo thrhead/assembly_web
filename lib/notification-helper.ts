@@ -182,7 +182,148 @@ export async function sendAdminNotification(
             }
         }
 
-    } catch (error) {
-        console.error('Error sending admin notification:', error);
+        } catch (error) {
+
+            console.error('Error sending admin notification:', error);
+
+        }
+
     }
-}
+
+    
+
+    /**
+
+     * Send notification to a specific user
+
+     */
+
+    export async function sendUserNotification(
+
+        userId: string,
+
+        title: string,
+
+        message: string,
+
+        type: NotificationType,
+
+        link?: string
+
+    ) {
+
+        try {
+
+            // 1. Get user and push tokens
+
+            const user = await prisma.user.findUnique({
+
+                where: { id: userId },
+
+                include: { pushTokens: true }
+
+            });
+
+    
+
+            if (!user) return;
+
+    
+
+            // 2. Create notification in DB
+
+            await prisma.notification.create({
+
+                data: {
+
+                    userId,
+
+                    title,
+
+                    message,
+
+                    type,
+
+                    link,
+
+                    isRead: false,
+
+                }
+
+            });
+
+            console.log(`Notification created for user ${userId}`);
+
+    
+
+            // 3. Send Push Notifications
+
+            const messages: ExpoPushMessage[] = [];
+
+            const tokens = new Set<string>();
+
+            
+
+            if (user.pushToken) tokens.add(user.pushToken);
+
+            user.pushTokens.forEach(pt => tokens.add(pt.token));
+
+    
+
+            for (const token of tokens) {
+
+                if (Expo.isExpoPushToken(token)) {
+
+                    messages.push({
+
+                        to: token,
+
+                        sound: 'default',
+
+                        title: title,
+
+                        body: message,
+
+                        data: { link },
+
+                        priority: 'high',
+
+                        channelId: 'default',
+
+                    });
+
+                }
+
+            }
+
+    
+
+            if (messages.length > 0) {
+
+                const chunks = expo.chunkPushNotifications(messages);
+
+                for (const chunk of chunks) {
+
+                    try {
+
+                        await expo.sendPushNotificationsAsync(chunk);
+
+                    } catch (error) {
+
+                        console.error('Error sending push notification chunk:', error);
+
+                    }
+
+                }
+
+            }
+
+        } catch (error) {
+
+            console.error('Error sending user notification:', error);
+
+        }
+
+    }
+
+    
