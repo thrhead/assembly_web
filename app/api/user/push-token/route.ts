@@ -1,44 +1,56 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 
 export async function POST(req: Request) {
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
         if (!session?.user?.id) {
-            return new NextResponse('Unauthorized', { status: 401 })
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { token } = await req.json()
+        const body = await req.json()
+        const { token } = body
+        
         if (!token) {
-            return new NextResponse('Token is required', { status: 400 })
+            return NextResponse.json({ error: 'Token is required' }, { status: 400 })
         }
 
+        // Upsert push token for the user
         await prisma.pushToken.upsert({
             where: { token },
-            update: { userId: session.user.id },
-            create: { token, userId: session.user.id }
+            update: { 
+                userId: session.user.id,
+                updatedAt: new Date()
+            },
+            create: { 
+                token, 
+                userId: session.user.id 
+            }
         })
 
         return NextResponse.json({ success: true })
     } catch (error) {
         console.error('[PUSH_TOKEN_POST]', error)
-        return new NextResponse('Internal Error', { status: 500 })
+        return NextResponse.json({ error: 'Internal Error' }, { status: 500 })
     }
 }
 
 export async function DELETE(req: Request) {
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
         if (!session?.user?.id) {
-            return new NextResponse('Unauthorized', { status: 401 })
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { token } = await req.json()
+        const body = await req.json()
+        const { token } = body
+        
         if (!token) {
-            return new NextResponse('Token is required', { status: 400 })
+            return NextResponse.json({ error: 'Token is required' }, { status: 400 })
         }
 
+        // Delete specific token for this user
         await prisma.pushToken.deleteMany({
             where: { 
                 token,
@@ -49,6 +61,6 @@ export async function DELETE(req: Request) {
         return NextResponse.json({ success: true })
     } catch (error) {
         console.error('[PUSH_TOKEN_DELETE]', error)
-        return new NextResponse('Internal Error', { status: 500 })
+        return NextResponse.json({ error: 'Internal Error' }, { status: 500 })
     }
 }
