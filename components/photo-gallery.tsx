@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { X, Download, Maximize2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
@@ -9,6 +10,8 @@ import { toast } from 'sonner'
 interface Photo {
     url: string
     publicId: string
+    stepTitle?: string
+    uploadedBy?: string
 }
 
 interface PhotoGalleryProps {
@@ -74,15 +77,17 @@ export function PhotoGallery({ photos, canDelete = false, onDelete }: PhotoGalle
                 {photos.map((photo, index) => (
                     <div
                         key={photo.publicId}
-                        className="relative group cursor-pointer"
+                        className="relative group cursor-pointer aspect-square"
                         onClick={() => openLightbox(index)}
                     >
-                        <img
+                        <Image
                             src={photo.url}
                             alt={`Photo ${index + 1}`}
-                            className="w-full h-40 object-cover rounded-lg border hover:opacity-90 transition-opacity"
+                            fill
+                            className="object-cover rounded-lg border hover:opacity-90 transition-opacity"
+                            unoptimized
                         />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 z-10">
                             <Button
                                 size="icon"
                                 variant="ghost"
@@ -96,12 +101,14 @@ export function PhotoGallery({ photos, canDelete = false, onDelete }: PhotoGalle
             </div>
 
             <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
-                <DialogContent className="max-w-4xl">
-                    <div className="relative">
-                        <img
+                <DialogContent className="max-w-4xl w-full p-0 overflow-hidden bg-black">
+                    <div className="relative w-full h-[70vh]">
+                        <Image
                             src={photos[currentIndex]?.url}
                             alt="Full size"
-                            className="w-full max-h-[70vh] object-contain"
+                            fill
+                            className="object-contain"
+                            unoptimized
                         />
 
                         <div className="absolute top-2 right-2 flex gap-2">
@@ -149,14 +156,14 @@ export function PhotoGallery({ photos, canDelete = false, onDelete }: PhotoGalle
                         )}
 
                         <div className="absolute bottom-12 left-0 right-0 text-center pointer-events-none">
-                            {(photos[currentIndex] as any).stepTitle && (
+                            {photos[currentIndex]?.stepTitle && (
                                 <div className="bg-black/50 text-white px-3 py-1 rounded-full text-sm inline-block mx-2 mb-2">
-                                    {(photos[currentIndex] as any).stepTitle}
+                                    {photos[currentIndex].stepTitle}
                                 </div>
                             )}
-                            {(photos[currentIndex] as any).uploadedBy && (
+                            {photos[currentIndex]?.uploadedBy && (
                                 <div className="bg-black/50 text-white px-3 py-1 rounded-full text-sm inline-block mx-2 mb-2">
-                                    Yükleyen: {(photos[currentIndex] as any).uploadedBy}
+                                    Yükleyen: {photos[currentIndex].uploadedBy}
                                 </div>
                             )}
                         </div>

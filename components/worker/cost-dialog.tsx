@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -132,7 +133,15 @@ export function CostDialog({ open, onOpenChange, jobId, onSuccess }: CostDialogP
                         </div>
                         {receiptUrl && (
                             <div className="mt-2 relative h-32 w-full rounded-md overflow-hidden border">
-                                <img src={receiptUrl} alt="Receipt" className="h-full w-full object-cover" />
+                                <div className="relative h-full w-full">
+                                    <Image 
+                                        src={receiptUrl} 
+                                        alt="Receipt" 
+                                        fill
+                                        className="object-cover" 
+                                        unoptimized
+                                    />
+                                </div>
                             </div>
                         )}
                     </div>

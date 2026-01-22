@@ -76,11 +76,11 @@ export default function Calendar() {
                         day: 'Gün'
                     }}
                     events={events}
-                    datesSet={(dateInfo) => {
+                    datesSet={(dateInfo: { startStr: string; endStr: string; view: { type: string } }) => {
                         fetchEvents(dateInfo)
                         setView(dateInfo.view.type)
                     }}
-                    eventContent={(eventInfo) => {
+                    eventContent={(eventInfo: { timeText: string; event: { title: string } }) => {
                         return (
                             <div className="overflow-hidden text-xs p-0.5 cursor-pointer">
                                 <div className="font-semibold truncate">{eventInfo.timeText}</div>
@@ -88,7 +88,7 @@ export default function Calendar() {
                             </div>
                         )
                     }}
-                    eventClick={(info) => {
+                    eventClick={(info: { event: { id: string } }) => {
                         router.push(`/admin/jobs/${info.event.id}`)
                     }}
                     height="100%"

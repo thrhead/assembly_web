@@ -1,0 +1,67 @@
+{
+  "Common": {
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "loading": "Yükleniyor...",
+    "search": "Ara...",
+    "error": "Bir hata oluştu",
+    "success": "İşlem başarılı"
+  },
+  "Navigation": {
+    "dashboard": "Dashboard",
+    "jobs": "İşler",
+    "teams": "Ekipler",
+    "customers": "Müşteriler",
+    "costs": "Maliyetler",
+    "logout": "Çıkış Yap"
+  },
+  "Dashboard": {
+    "welcome": "Tekrar Hoşgeldiniz",
+    "activeWorkers": "Aktif Çalışanlar",
+    "todaysCost": "Bugün Harcanan",
+    "pendingApprovals": "Onay Bekleyenler",
+    "quickActions": "Hızlı İşlemler"
+  },
+  "Home": {
+    "title": "Montaj ve Servis",
+    "subtitle": "Takip Sistemi",
+    "description": "Fabrika dışında çalışan montaj ve servis ekiplerinin işlerini kolayca takip edin. Maliyet kontrolü, ekip yönetimi ve müşteri bildirimleri tek platformda.",
+    "loginButton": "Giriş Yap",
+    "features": {
+        "tracking": {
+            "title": "İş Takibi",
+            "desc": "Montaj süreçlerini adım adım takip edin ve kontrol edin"
+        },
+        "teams": {
+            "title": "Ekip Yönetimi",
+            "desc": "Ekiplerinizi yönetin, görevleri atayın ve ilerlemeyi izleyin"
+            },
+            "reporting": {
+              "title": "Raporlama",
+              "desc": "Detaylı raporlar ve grafiklerle maliyet kontrolü yapın"
+            }
+          },
+          "CustomerDashboard": {
+            "title": "Dashboard",
+            "subtitle": "İşlerinizin özeti ve durumu",
+            "stats": {
+              "totalJobs": "Toplam İş",
+              "pending": "Bekleyen",
+              "inProgress": "Devam Eden",
+              "completed": "Tamamlanan"
+            },
+            "charts": {
+              "distribution": "İş Durumu Dağılımı"
+            },
+            "recentJobs": {
+              "title": "Son İşler",
+              "viewAll": "Tümünü Gör",
+              "noJobs": "Henüz iş bulunmuyor",
+              "progress": "İlerleme"
+            }
+          }
+        }
+        
+}

@@ -1,6 +1,6 @@
 'use client'
 
-import { signOut, useSession } from 'next-auth/react'
+import { signOut } from 'next-auth/react'
 import { MenuIcon, LogOutIcon, UserIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,12 +13,14 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 interface CustomerHeaderProps {
-  onMenuClick: () => void
+  onMenuClick?: () => void
+  user?: {
+    name?: string | null
+    email?: string | null
+  }
 }
 
-export function CustomerHeader({ onMenuClick }: CustomerHeaderProps) {
-  const { data: session } = useSession()
-
+export function CustomerHeader({ onMenuClick, user }: CustomerHeaderProps) {
   return (
     <header className="h-16 border-b bg-white flex items-center justify-between px-4 lg:px-6">
       <div className="flex items-center gap-4">
@@ -39,8 +41,8 @@ export function CustomerHeader({ onMenuClick }: CustomerHeaderProps) {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>
               <div className="flex flex-col">
-                <span className="font-medium">{session?.user?.name}</span>
-                <span className="text-xs text-gray-500">{session?.user?.email}</span>
+                <span className="font-medium">{user?.name}</span>
+                <span className="text-xs text-gray-500">{user?.email}</span>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

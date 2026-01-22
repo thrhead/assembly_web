@@ -1,0 +1,67 @@
+{
+  "Common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "search": "Search...",
+    "error": "An error occurred",
+    "success": "Operation successful"
+  },
+  "Navigation": {
+    "dashboard": "Dashboard",
+    "jobs": "Jobs",
+    "teams": "Teams",
+    "customers": "Customers",
+    "costs": "Costs",
+    "logout": "Logout"
+  },
+  "Dashboard": {
+    "welcome": "Welcome Back",
+    "activeWorkers": "Active Workers",
+    "todaysCost": "Today's Cost",
+    "pendingApprovals": "Pending Approvals",
+    "quickActions": "Quick Actions"
+  },
+  "Home": {
+    "title": "Assembly and Service",
+    "subtitle": "Tracking System",
+    "description": "Easily track the work of assembly and service teams working outside the factory. Cost control, team management, and customer notifications on a single platform.",
+    "loginButton": "Login",
+    "features": {
+        "tracking": {
+            "title": "Job Tracking",
+            "desc": "Track and control assembly processes step by step"
+        },
+        "teams": {
+            "title": "Team Management",
+            "desc": "Manage your teams, assign tasks, and monitor progress"
+            },
+            "reporting": {
+              "title": "Reporting",
+              "desc": "Perform cost control with detailed reports and charts"
+            }
+          },
+          "CustomerDashboard": {
+            "title": "Dashboard",
+            "subtitle": "Summary and status of your jobs",
+            "stats": {
+              "totalJobs": "Total Jobs",
+              "pending": "Pending",
+              "inProgress": "In Progress",
+              "completed": "Completed"
+            },
+            "charts": {
+              "distribution": "Job Status Distribution"
+            },
+            "recentJobs": {
+              "title": "Recent Jobs",
+              "viewAll": "View All",
+              "noJobs": "No jobs found yet",
+              "progress": "Progress"
+            }
+          }
+        }
+        
+}

@@ -2,16 +2,116 @@
 
 This file tracks all major tracks for the project. Each track has its own detailed plan in its respective folder.
 
----
-
-## [~] Track: Expo Push Notifications Integration
-
-*Link: [./conductor/tracks/push_notifications_20260114/](./conductor/tracks/push_notifications_20260114/)*
+## Active Tracks
 
 ---
 
-## [ ] Track: Mobile UX & Performance Audit Fixes
+## [ ] Track: UI/UX & Performance Refactor
 
-*Link: [./conductor/tracks/mobile_audit_fixes_20260120/](./conductor/tracks/mobile_audit_fixes_20260120/)*
+*Link: [./conductor/tracks/ui_ux_refactor_20260122/](./conductor/tracks/ui_ux_refactor_20260122/)*
 
+---
 
+## Pending Tracks
+
+---
+
+## [ ] Track: Digital Signature Integration
+
+*Link: [./conductor/tracks/digital_signature_v1/](./conductor/tracks/digital_signature_v1/)*
+
+---
+
+## Archived Tracks
+
+---
+
+## [x] Track: i18n Migration Phase 2
+
+*Link: [./conductor/archive/i18n_migration_phase2/](./conductor/archive/i18n_migration_phase2/)*
+
+---
+
+## [x] Track: i18n & Localization Infrastructure
+
+*Link: [./conductor/archive/i18n_localization_v1/](./conductor/archive/i18n_localization_v1/)*
+
+---
+
+## Archived Tracks
+
+---
+
+## [x] Track: Operations & Insights Enhancement V1
+
+*Link: [./conductor/archive/ops_insights_v1/](./conductor/archive/ops_insights_v1/)*
+
+---
+
+## [ ] Track: Digital Signature Integration
+
+*Link: [./conductor/tracks/digital_signature_v1/](./conductor/tracks/digital_signature_v1/)*
+
+---
+
+## [ ] Track: Advanced Planning & Intelligence
+
+*Link: [./conductor/tracks/advanced_planning_v1/](./conductor/tracks/advanced_planning_v1/)*
+
+---
+
+## [ ] Track: Enterprise Integrations
+
+*Link: [./conductor/tracks/enterprise_integrations_v1/](./conductor/tracks/enterprise_integrations_v1/)*
+
+---
+
+## Archived Tracks
+
+---
+
+## [x] Track: Customer Portal V1
+
+*Link: [./conductor/archive/customer_portal_v1/](./conductor/archive/customer_portal_v1/)*
+
+---
+
+## [x] Track: Infrastructure Hardening & Tech Debt Cleanup
+
+*Link: [./conductor/archive/tech_debt_cleanup_20260121/](./conductor/archive/tech_debt_cleanup_20260121/)*
+
+---
+
+## [x] Track: Expo Push Notifications Integration
+
+*Link: [./conductor/archive/push_notifications_20260114/](./conductor/archive/push_notifications_20260114/)*
+
+---
+
+## [x] Track: Mobile UX & Performance Audit Fixes
+
+*Link: [./conductor/archive/mobile_audit_fixes_20260120/](./conductor/archive/mobile_audit_fixes_20260120/)*
+
+---
+
+## [x] Track: PWA Offline Sync
+
+*Link: [./conductor/archive/pwa_offline_sync_20260120/](./conductor/archive/pwa_offline_sync_20260120/)*
+
+---
+
+## [x] Track: Field Core V2
+
+*Link: [./conductor/archive/field_core_v2/](./conductor/archive/field_core_v2/)*
+
+---
+
+## [x] Track: Offline Sync (Legacy)
+
+*Link: [./conductor/archive/offline_sync_20260105/](./conductor/archive/offline_sync_20260105/)*
+
+---
+
+## [x] Track: Reporting Module
+
+*Link: [./conductor/archive/reporting_20251228/](./conductor/archive/reporting_20251228/)*

@@ -1,91 +1,57 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import {
-  LayoutDashboardIcon,
-  BriefcaseIcon,
-  SettingsIcon,
-  XIcon
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
+import { BriefcaseIcon, UserIcon, LogOutIcon } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { signOut } from "next-auth/react"
 
-const sidebarItems = [
-  {
-    title: 'Dashboard',
-    href: '/customer',
-    icon: LayoutDashboardIcon
-  },
-  {
-    title: 'İşlerim',
-    href: '/customer/jobs',
-    icon: BriefcaseIcon
-  },
-  {
-    title: 'Profil & Ayarlar',
-    href: '/customer/settings',
-    icon: SettingsIcon
-  }
+const navigation = [
+  { name: "İşlerim", href: "/customer", icon: BriefcaseIcon },
+  { name: "Profil", href: "/customer/profile", icon: UserIcon },
 ]
 
-interface CustomerSidebarProps {
-  isOpen: boolean
-  onClose: () => void
-}
-
-export function CustomerSidebar({ isOpen, onClose }: CustomerSidebarProps) {
+export function CustomerSidebar() {
   const pathname = usePathname()
 
   return (
-    <>
-      {/* Sidebar Container */}
-      <div
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 bg-white border-r transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:flex lg:flex-col",
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        <div className="h-16 flex items-center justify-between px-6 border-b lg:hidden">
-          <span className="font-bold text-lg">Menü</span>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <XIcon className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {/* Navigation Links */}
-        <div className="flex-1 overflow-y-auto py-4 px-3">
-          <nav className="space-y-1">
-            {sidebarItems.map((item) => {
-              const isActive = pathname === item.href || (item.href !== '/customer' && pathname.startsWith(item.href))
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-indigo-50 text-indigo-600"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                  )}
-                  onClick={onClose}
-                >
-                  <item.icon className={cn("h-5 w-5", isActive ? "text-indigo-600" : "text-gray-400")} />
-                  {item.title}
-                </Link>
-              )
-            })}
-          </nav>
-        </div>
+    <div className="hidden lg:flex flex-col w-64 bg-white border-r min-h-screen p-4">
+      <div className="mb-8 px-4">
+        <h1 className="text-xl font-bold text-gray-900">Müşteri Paneli</h1>
       </div>
 
-      {/* Overlay for mobile */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={onClose}
-        />
-      )}
-    </>
+      <nav className="flex-1 space-y-1">
+        {navigation.map((item) => {
+          const isActive = pathname === item.href
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors",
+                isActive
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              {item.name}
+            </Link>
+          )
+        })}
+      </nav>
+
+      <div className="pt-4 border-t">
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-3 text-red-600 hover:text-red-700 hover:bg-red-50"
+          onClick={() => signOut()}
+        >
+          <LogOutIcon className="h-5 w-5" />
+          Çıkış Yap
+        </Button>
+      </div>
+    </div>
   )
 }

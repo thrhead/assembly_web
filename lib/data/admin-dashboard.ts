@@ -1,12 +1,16 @@
 import { prisma } from "@/lib/db"
 
 export async function getAdminDashboardData() {
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
   const [
     activeWorkers,
     todaysCosts,
     pendingApprovalsCount,
     pendingCostsAgg,
-    approvedCostsAgg
+    approvedCostsAgg,
+    weeklyCompletedJobs
   ] = await Promise.all([
     prisma.user.findMany({
       where: {
@@ -49,6 +53,17 @@ export async function getAdminDashboardData() {
     prisma.costTracking.aggregate({
       where: { status: 'APPROVED' },
       _sum: { amount: true }
+    }),
+    prisma.job.findMany({
+      where: {
+        status: 'COMPLETED',
+        completedDate: {
+          gte: sevenDaysAgo
+        }
+      },
+      select: {
+        completedDate: true
+      }
     })
   ])
 
@@ -56,12 +71,30 @@ export async function getAdminDashboardData() {
   const dailyBudget = 2000
   const budgetPercentage = Math.min(Math.round((totalCostToday / dailyBudget) * 100), 100)
 
+  // Group jobs by date
+  const weeklyStats = new Array(7).fill(0).map((_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - (6 - i)) // Last 7 days including today
+    const dateKey = d.toISOString().split('T')[0]
+    const displayDate = d.toLocaleDateString('tr-TR', { weekday: 'short' })
+    
+    const count = weeklyCompletedJobs.filter(job => 
+      job.completedDate && job.completedDate.toISOString().split('T')[0] === dateKey
+    ).length
+
+    return {
+      name: displayDate,
+      count
+    }
+  })
+
   return {
     activeWorkers,
     totalCostToday,
     budgetPercentage,
     pendingApprovalsCount,
     totalPendingCost: pendingCostsAgg._sum.amount || 0,
-    totalApprovedCost: approvedCostsAgg._sum.amount || 0
+    totalApprovedCost: approvedCostsAgg._sum.amount || 0,
+    weeklyStats
   }
 }

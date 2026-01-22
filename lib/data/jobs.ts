@@ -3,9 +3,10 @@ import { Prisma } from "@prisma/client";
 
 export type JobFilter = {
   search?: string;
-  status?: string;
+  status?: string | string[]; // Allow array for multi-select
   priority?: string;
   customerId?: string;
+  teams?: string[]; // New filter for teams
   dateRange?: {
     start: Date;
     end: Date;
@@ -31,8 +32,22 @@ export async function getJobs({ page = 1, limit = 20, filter }: GetJobsParams = 
     ];
   }
 
-  if (filter?.status && filter.status !== 'ALL') {
-    where.status = filter.status;
+  // Handle status (single or multiple)
+  if (filter?.status) {
+    if (Array.isArray(filter.status) && filter.status.length > 0) {
+      where.status = { in: filter.status };
+    } else if (typeof filter.status === 'string' && filter.status !== 'ALL') {
+      where.status = filter.status;
+    }
+  }
+
+  // Handle teams
+  if (filter?.teams && filter.teams.length > 0) {
+    where.assignments = {
+      some: {
+        teamId: { in: filter.teams }
+      }
+    };
   }
 
   if (filter?.priority && filter.priority !== 'ALL') {

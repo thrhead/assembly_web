@@ -44,7 +44,14 @@ export async function GET(
             description: true,
             isCompleted: true,
             completedAt: true,
-            order: true
+            order: true,
+            photos: {
+              select: {
+                id: true,
+                url: true,
+                uploadedAt: true
+              }
+            }
           },
           orderBy: {
             order: 'asc'

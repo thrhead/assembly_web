@@ -7,27 +7,26 @@ Bu belge, Assembly Tracker projesinin V2.0 dönüşümünü yöneten ana plandı
 
 ### 🔴 Track 1: Field Core (Offline First & Messaging) [PRIORITY: HIGH]
 *Hedef: Saha ekiplerinin internet bağımsız çalışabilmesi ve güvenli iletişim.*
-*   **Feature 11:** Offline Stability (Queue Conflict Resolution & Data Consistency).
-*   **Feature 4:** Secure Offline Messaging (E2E Encrypted, Local Storage).
-*   **Feature 1 (Partial):** Dijital İmza altyapısı (UI hazırlığı, implementasyon backlog'da).
-*   **Entegrasyon:** Mevcut `pwa_offline_sync` track'i bu paketin bir parçası olarak tamamlanacak.
+*   **Feature 11:** ✅ Offline Stability (Tamamlandı - `pwa_offline_sync`).
+*   **Feature 4:** ✅ Secure Offline Messaging (Temel yapı tamamlandı, geliştirmeler `tech_debt` içinde yapıldı).
+*   **Feature 1:** ⏳ Dijital İmza (Yeni Track: `digital_signature_v1`).
 
 ### 🟠 Track 2: Customer Experience (Portal)
 *Hedef: Müşterilerin süreçlere dahil edilmesi.*
-*   **Feature 3:** Müşteri Portalı (Kısıtlı Rol: Sadece kendi işlerini görme, onay verme).
-*   **Feature 6:** Çoklu Dil Altyapısı (i18n).
+*   **Feature 3:** ✅ Müşteri Portalı (Tamamlandı - `customer_portal_v1`).
+*   **Feature 6:** ⏳ Çoklu Dil Altyapısı (Yeni Track: `i18n_localization_v1`).
 
 ### 🟡 Track 3: Operations & Intelligence
 *Hedef: Yöneticiler için planlama ve analiz gücü.*
-*   **Feature 2:** Zaman Planlama, Gantt Şeması ve Rota Optimizasyonu.
-*   **Feature 8:** Tahmin vs. Gerçek Analizi.
-*   **Feature 9:** Gelişmiş Raporlama ve BI Panoları.
+*   **Feature 2:** ⏳ Zaman Planlama ve Gantt (Yeni Track: `advanced_planning_v1`).
+*   **Feature 8:** ⏳ Tahmin vs. Gerçek Analizi (Yeni Track: `advanced_planning_v1`).
+*   **Feature 9:** 🔄 Gelişmiş Raporlama (Devam Ediyor - `ops_insights_v1`).
 
 ### 🔵 Track 4: Enterprise & Integrations
 *Hedef: Ticarileşme ve dış dünya entegrasyonu.*
-*   **Feature 7:** Public API & Webhooks.
-*   **Feature 10:** Faturalama ve Ödeme Entegrasyonu.
-*   **Feature 12:** Gelişmiş Temalar ve UX Animasyonları.
+*   **Feature 7:** ⏳ Public API & Webhooks (Yeni Track: `enterprise_integrations_v1`).
+*   **Feature 10:** ⏳ Faturalama (Yeni Track: `enterprise_integrations_v1`).
+*   **Feature 12:** 🔄 Gelişmiş Temalar ve UX (Devam Ediyor - `ui_ux_refactor` & `ops_insights_v1`).
 
 ---
 
