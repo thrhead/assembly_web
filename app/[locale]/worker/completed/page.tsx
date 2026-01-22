@@ -8,8 +8,8 @@ import {
   CalendarIcon,
   MapPinIcon,
   CheckCircle2Icon,
-  BriefcaseIcon,
-  Building2Icon
+  Building2Icon,
+  ArrowLeftIcon
 } from 'lucide-react'
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
@@ -56,26 +56,18 @@ export default async function CompletedJobsPage() {
   const jobs = await getCompletedJobs(session?.user?.id || '')
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/worker" className="p-2 hover:bg-gray-100 rounded-full">
-          <ArrowLeftIcon className="h-6 w-6" />
-        </Link>
-        <h1 className="text-2xl font-bold">Tamamlanan İşler</h1>
-      </div>
-
-      <div className="space-y-4">
-        {jobs.length > 0 ? (
-          jobs.map((job: any) => (
-            <div key={job.id} className="bg-white p-4 rounded-xl border shadow-sm">
-
-
-  return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Tamamlanmış İşler</h1>
-        <p className="text-gray-600 mt-1">Tamamladığınız işlerin listesi</p>
+      <div className="flex items-center gap-4">
+        <Button asChild variant="ghost" size="icon" className="rounded-full">
+          <Link href="/worker">
+            <ArrowLeftIcon className="h-6 w-6" />
+          </Link>
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Tamamlanmış İşler</h1>
+          <p className="text-gray-600 mt-1">Tamamladığınız işlerin listesi</p>
+        </div>
       </div>
 
       {/* Stats Card */}
@@ -105,7 +97,7 @@ export default async function CompletedJobsPage() {
           </div>
         )}
 
-        {jobs.map((job) => (
+        {jobs.map((job: any) => (
           <Card key={job.id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between gap-2">
