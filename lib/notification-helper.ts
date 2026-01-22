@@ -57,38 +57,45 @@ export async function sendJobNotification(
         console.log(`DB Notification created for ${recipientIds.size} users for job ${jobId}`);
 
         // 4. Send Push Notifications
-        // Fetch users to get their push tokens
+        // Fetch users with their push tokens (legacy and new)
         const users = await prisma.user.findMany({
             where: {
-                id: { in: recipientIdArray },
-                pushToken: { not: null }
+                id: { in: recipientIdArray }
             },
-            select: { pushToken: true }
+            include: {
+                pushTokens: true
+            }
         });
 
         const messages: ExpoPushMessage[] = [];
         for (const user of users) {
-            if (user.pushToken && Expo.isExpoPushToken(user.pushToken)) {
-                messages.push({
-                    to: user.pushToken,
-                    sound: 'default',
-                    title: title,
-                    body: message,
-                    data: { jobId, link },
-                    priority: 'high',
-                    channelId: 'default',
-                });
+            // Collect tokens from both legacy field and new relation
+            const tokens = new Set<string>();
+            
+            if (user.pushToken) tokens.add(user.pushToken);
+            user.pushTokens.forEach(pt => tokens.add(pt.token));
+
+            for (const token of tokens) {
+                if (Expo.isExpoPushToken(token)) {
+                    messages.push({
+                        to: token,
+                        sound: 'default',
+                        title: title,
+                        body: message,
+                        data: { jobId, link },
+                        priority: 'high',
+                        channelId: 'default',
+                    });
+                }
             }
         }
 
         if (messages.length > 0) {
             const chunks = expo.chunkPushNotifications(messages);
-            const tickets = [];
             for (const chunk of chunks) {
                 try {
                     const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
                     console.log('Push notification tickets:', ticketChunk);
-                    tickets.push(...ticketChunk);
                 } catch (error) {
                     console.error('Error sending push notification chunk:', error);
                 }
@@ -97,7 +104,6 @@ export async function sendJobNotification(
 
     } catch (error) {
         console.error('Error sending job notification:', error);
-        // Don't throw, just log. Notification failure shouldn't fail the main action.
     }
 }
 
@@ -109,7 +115,7 @@ export async function sendAdminNotification(
     message: string,
     type: NotificationType,
     link?: string,
-    excludeUserId?: string // Exclude the user who triggered the action
+    excludeUserId?: string
 ) {
     try {
         // 1. Find all admin users
@@ -119,7 +125,9 @@ export async function sendAdminNotification(
                 isActive: true,
                 ...(excludeUserId ? { id: { not: excludeUserId } } : {})
             },
-            select: { id: true, pushToken: true }
+            include: {
+                pushTokens: true
+            }
         });
 
         if (admins.length === 0) return;
@@ -141,23 +149,27 @@ export async function sendAdminNotification(
 
         // 3. Send Push Notifications
         const messages: ExpoPushMessage[] = [];
-        console.log(`[ADMIN PUSH] Checking ${admins.length} admins for push tokens...`);
+        
         for (const admin of admins) {
-            console.log(`[ADMIN PUSH] Admin ${admin.id}: pushToken = ${admin.pushToken ? 'EXISTS' : 'NULL'}`);
-            if (admin.pushToken && Expo.isExpoPushToken(admin.pushToken)) {
-                messages.push({
-                    to: admin.pushToken,
-                    sound: 'default',
-                    title: title,
-                    body: message,
-                    data: { link },
-                    priority: 'high',
-                    channelId: 'default',
-                });
+            const tokens = new Set<string>();
+            if (admin.pushToken) tokens.add(admin.pushToken);
+            admin.pushTokens.forEach(pt => tokens.add(pt.token));
+
+            for (const token of tokens) {
+                if (Expo.isExpoPushToken(token)) {
+                    messages.push({
+                        to: token,
+                        sound: 'default',
+                        title: title,
+                        body: message,
+                        data: { link },
+                        priority: 'high',
+                        channelId: 'default',
+                    });
+                }
             }
         }
 
-        console.log(`[ADMIN PUSH] ${messages.length} push messages to send`);
         if (messages.length > 0) {
             const chunks = expo.chunkPushNotifications(messages);
             for (const chunk of chunks) {
@@ -168,8 +180,6 @@ export async function sendAdminNotification(
                     console.error('Error sending admin push notification:', error);
                 }
             }
-        } else {
-            console.log('[ADMIN PUSH] No push tokens found for admins - skipping push notifications');
         }
 
     } catch (error) {
