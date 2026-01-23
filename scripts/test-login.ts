@@ -1,24 +1,21 @@
-
 import { PrismaClient } from '@prisma/client';
 
-const API_URL = 'http://localhost:3000/api';
-const prisma = new PrismaClient();
+const API_URL = process.env.API_URL || 'http://localhost:3000/api';
+const TEST_EMAIL = process.env.TEST_EMAIL;
+const TEST_PASSWORD = process.env.TEST_PASSWORD;
 
 async function main() {
     console.log('🔄 Testing Worker Login...');
 
-    const email = 'ahah@montaj.com';
-    const password = 'ahh123'; // Trying the password mentioned in previous logs
-
-    console.log(`🔑 Attempting login for ${email} with password '${password}'...`);
+    console.log(`🔑 Attempting login for ${TEST_EMAIL}...`);
 
     try {
         const loginRes = await fetch(`${API_URL}/mobile/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                email,
-                password
+                email: TEST_EMAIL,
+                password: TEST_PASSWORD
             })
         });
 

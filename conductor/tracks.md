@@ -6,37 +6,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [ ] Track: Mobile i18n Infrastructure
-
-*Link: [./conductor/tracks/mobile_i18n_v1/](./conductor/tracks/mobile_i18n_v1/)*
-
----
-
 ## Pending Tracks
-
----
-
-## [ ] Track: Mobile Feature Parity & Module Migration
-
-*Link: [./conductor/tracks/mobile_feature_parity_v1/](./conductor/tracks/mobile_feature_parity_v1/)*
-
----
-
-## [ ] Track: Advanced Planning & Intelligence
-
-*Link: [./conductor/tracks/advanced_planning_v1/](./conductor/tracks/advanced_planning_v1/)*
-
----
-
-## [ ] Track: Enterprise Integrations
-
-*Link: [./conductor/tracks/enterprise_integrations_v1/](./conductor/tracks/enterprise_integrations_v1/)*
-
----
-
-## [ ] Track: Digital Signature Integration (Completed - Ready for Archival)
-
-*Link: [./conductor/tracks/digital_signature_v1/](./conductor/tracks/digital_signature_v1/)*
 
 ---
 
@@ -44,15 +14,57 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+## [x] Track: System Stabilization & Debt Cleanup
+
+*Link: [./conductor/archive/system_stabilization_v1_20260123/](./conductor/archive/system_stabilization_v1_20260123/)*
+
+---
+
+## [x] Track: Mobile Parity & Metadata Modernization
+
+*Link: [./conductor/archive/mobile_parity_metadata_v1/](./conductor/archive/mobile_parity_metadata_v1/)*
+
+---
+
+## [x] Track: Security Hardening & Zero-Vulnerability Compliance
+
+*Link: [./conductor/archive/security_hardening_v1/](./conductor/archive/security_hardening_v1/)*
+
+---
+
+## [x] Track: Enterprise Integrations
+
+*Link: [./conductor/archive/enterprise_integrations_v1_20260122/](./conductor/archive/enterprise_integrations_v1_20260122/)*
+
+---
+
+## [x] Track: Advanced Planning & Intelligence
+
+*Link: [./conductor/archive/advanced_planning_v1_20260122/](./conductor/archive/advanced_planning_v1_20260122/)*
+
+---
+
+## [x] Track: Mobile Feature Parity & Module Migration
+
+*Link: [./conductor/archive/mobile_feature_parity_v1/](./conductor/archive/mobile_feature_parity_v1/)*
+
+---
+
+## [x] Track: Mobile i18n Infrastructure
+
+*Link: [./conductor/archive/mobile_i18n_v1_20260122/](./conductor/archive/mobile_i18n_v1_20260122/)*
+
+---
+
 ## [x] Track: Digital Signature Integration
 
-*Link: [./conductor/tracks/digital_signature_v1/](./conductor/tracks/digital_signature_v1/)*
+*Link: [./conductor/archive/digital_signature_v1_20260122/](./conductor/archive/digital_signature_v1_20260122/)*
 
 ---
 
 ## [x] Track: UI/UX Accessibility & Touch Standardization
 
-*Link: [./conductor/tracks/ui_ux_standardization_20260122/](./conductor/tracks/ui_ux_standardization_20260122/)*
+*Link: [./conductor/archive/ui_ux_standardization_20260122/](./conductor/archive/ui_ux_standardization_20260122/)*
 
 ---
 

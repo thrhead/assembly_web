@@ -11,7 +11,7 @@ async function main() {
         },
         body: JSON.stringify({
             email: 'worker@montaj.com',
-            password: 'worker123'
+            password: process.env.TEST_WORKER_PASSWORD
         })
     })
 

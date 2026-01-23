@@ -11,7 +11,7 @@ async function testCustomerCreate() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 email: 'admin@montaj.com',
-                password: 'admin123'
+                password: process.env.ADMIN_PASSWORD
             })
         });
 

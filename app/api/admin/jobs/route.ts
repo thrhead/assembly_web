@@ -5,6 +5,7 @@ import { verifyAdminOrManager } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { jobCreationSchema } from '@/lib/validations'
 import { sendJobNotification } from '@/lib/notification-helper';
+import { EventBus } from '@/lib/event-bus';
 
 // Helper function to build where clause for filtering
 function buildJobFilter(searchParams: URLSearchParams) {
@@ -161,6 +162,9 @@ export async function POST(req: Request) {
                 `/worker/jobs/${newJob.id}`
             );
         }
+
+        // Trigger side effects
+        await EventBus.emit('job.created', newJob);
 
         return NextResponse.json(newJob, { status: 201 })
     } catch (error) {

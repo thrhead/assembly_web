@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
-import { Clock, Play, CheckCircle, XCircle, Loader2, AlertCircle, Image } from 'lucide-react'
+import { Clock, Play, CheckCircle, XCircle, Loader2, AlertCircle, Image, MapPin } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 

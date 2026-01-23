@@ -1,13 +1,12 @@
-
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAdmin } from '@/lib/auth-helper'
 import { z } from 'zod'
-import crypto from 'crypto'
-import bcrypt from 'bcryptjs'
+import { generateApiKey, hashApiKey } from '@/lib/api-security'
 
 const apiKeySchema = z.object({
-    name: z.string().min(1, 'İsim gereklidir')
+    name: z.string().min(1, 'İsim gereklidir'),
+    scopes: z.array(z.string()).default(['jobs:read'])
 })
 
 export async function GET(req: Request) {
@@ -23,10 +22,11 @@ export async function GET(req: Request) {
             select: {
                 id: true,
                 name: true,
+                scopes: true,
                 isActive: true,
+                lastUsedAt: true,
                 createdAt: true,
                 updatedAt: true
-                // key alanını asla dönmüyoruz (zaten hashlenmiş)
             }
         })
 
@@ -45,30 +45,30 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json()
-        const { name } = apiKeySchema.parse(body)
+        const { name, scopes } = apiKeySchema.parse(body)
 
-        // Generate a random API key
-        const rawKey = `at_${crypto.randomBytes(32).toString('hex')}`
+        // Generate a random API key using our security utility
+        const rawKey = generateApiKey()
 
-        // Hash the key for storage
-        const hashedKey = await bcrypt.hash(rawKey, 10)
+        // Hash the key using SHA-256 for storage
+        const hashedKey = hashApiKey(rawKey)
 
         const newApiKey = await prisma.apiKey.create({
             data: {
                 name,
+                scopes,
                 key: hashedKey,
                 userId: session.user.id
             },
             select: {
                 id: true,
                 name: true,
+                scopes: true,
                 isActive: true,
                 createdAt: true
             }
         })
 
-        // Sadece oluşturma anında ham anahtarı dönüyoruz.
-        // Kullanıcıya bunu saklaması gerektiğini bildiriyoruz.
         return NextResponse.json({
             ...newApiKey,
             apiKey: rawKey

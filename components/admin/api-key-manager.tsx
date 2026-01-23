@@ -1,4 +1,3 @@
-
 'use client'
 
 import React, { useState, useEffect } from 'react'
@@ -6,23 +5,36 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { KeyIcon, PlusIcon, Trash2Icon, CopyIcon, CheckIcon, ShieldCheckIcon } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { KeyIcon, PlusIcon, Trash2Icon, CopyIcon, CheckIcon, ShieldCheckIcon, ClockIcon } from 'lucide-react'
 import { toast } from 'sonner'
-import { format } from 'date-fns'
+import { format, formatDistanceToNow } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
 
 interface ApiKey {
     id: string
     name: string
+    scopes: string[]
     isActive: boolean
+    lastUsedAt: string | null
     createdAt: string
 }
+
+const AVAILABLE_SCOPES = [
+    { id: 'jobs:read', label: 'İşleri Görüntüle' },
+    { id: 'jobs:write', label: 'İşleri Düzenle/Oluştur' },
+    { id: 'teams:read', label: 'Ekipleri Görüntüle' },
+    { id: 'costs:read', label: 'Maliyetleri Görüntüle' },
+    { id: 'analytics:read', label: 'Raporları Görüntüle' }
+]
 
 export function ApiKeyManager() {
     const [keys, setKeys] = useState<ApiKey[]>([])
     const [loading, setLoading] = useState(true)
     const [newName, setNewName] = useState('')
+    const [selectedScopes, setSelectedScopes] = useState<string[]>(['jobs:read'])
     const [creating, setCreating] = useState(false)
     const [newKeyData, setNewKeyData] = useState<{ name: string, apiKey: string } | null>(null)
     const [copied, setCopied] = useState(false)
@@ -52,11 +64,15 @@ export function ApiKeyManager() {
             const res = await fetch('/api/admin/api-keys', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newName })
+                body: JSON.stringify({ 
+                    name: newName,
+                    scopes: selectedScopes
+                })
             })
             const data = await res.json()
             setNewKeyData(data)
             setNewName('')
+            setSelectedScopes(['jobs:read'])
             fetchKeys()
             toast.success('API anahtarı oluşturuldu')
         } catch (error) {
@@ -64,6 +80,14 @@ export function ApiKeyManager() {
         } finally {
             setCreating(false)
         }
+    }
+
+    const toggleScope = (scopeId: string) => {
+        setSelectedScopes(prev => 
+            prev.includes(scopeId) 
+                ? prev.filter(s => s !== scopeId) 
+                : [...prev, scopeId]
+        )
     }
 
     const toggleStatus = async (id: string, currentStatus: boolean) => {
@@ -107,32 +131,52 @@ export function ApiKeyManager() {
                         <KeyIcon className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold">API Erişimi</h3>
-                        <p className="text-xs text-muted-foreground">Dış sistemler için entegrasyon anahtarları oluşturun.</p>
+                        <h3 className="text-lg font-bold">Yeni API Erişimi Tanımla</h3>
+                        <p className="text-xs text-muted-foreground">Dış sistemler için yetkilendirilmiş anahtarlar oluşturun.</p>
                     </div>
                 </div>
 
-                <form onSubmit={createKey} className="flex gap-4 items-end max-w-md">
-                    <div className="flex-1 space-y-2">
-                        <Label htmlFor="keyName">Anahtar İsmi (Örn: ERP Sistemi)</Label>
-                        <Input
-                            id="keyName"
-                            value={newName}
-                            onChange={(e) => setNewName(e.target.value)}
-                            placeholder="Entegrasyon adı..."
-                            className="bg-background"
-                        />
+                <form onSubmit={createKey} className="space-y-6">
+                    <div className="flex gap-4 items-end max-w-md">
+                        <div className="flex-1 space-y-2">
+                            <Label htmlFor="keyName">Anahtar İsmi</Label>
+                            <Input
+                                id="keyName"
+                                value={newName}
+                                onChange={(e) => setNewName(e.target.value)}
+                                placeholder="Örn: SAP Entegrasyonu"
+                                className="bg-background"
+                            />
+                        </div>
+                        <Button type="submit" disabled={creating || !newName.trim() || selectedScopes.length === 0}>
+                            <PlusIcon className="w-4 h-4 mr-2" />
+                            Oluştur
+                        </Button>
                     </div>
-                    <Button type="submit" disabled={creating || !newName.trim()}>
-                        <PlusIcon className="w-4 h-4 mr-2" />
-                        Oluştur
-                    </Button>
+
+                    <div className="space-y-3">
+                        <Label>Yetki Kapsamı (Scopes)</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {AVAILABLE_SCOPES.map(scope => (
+                                <div key={scope.id} className="flex items-center space-x-2 p-2 rounded-lg border border-transparent hover:bg-muted/50 transition-colors">
+                                    <Checkbox 
+                                        id={scope.id} 
+                                        checked={selectedScopes.includes(scope.id)}
+                                        onCheckedChange={() => toggleScope(scope.id)}
+                                    />
+                                    <label htmlFor={scope.id} className="text-xs font-medium leading-none cursor-pointer">
+                                        {scope.label}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </form>
 
                 {newKeyData && (
                     <Alert className="mt-6 border-primary/50 bg-primary/5">
                         <ShieldCheckIcon className="h-4 w-4 text-primary" />
-                        <AlertTitle className="font-bold text-primary">Yeni API Anahtarınız hazır!</AlertTitle>
+                        <AlertTitle className="font-bold text-primary">Yeni API Anahtarınız Hazır!</AlertTitle>
                         <AlertDescription className="space-y-4">
                             <p className="text-sm mt-2">
                                 Bu anahtar güvenlik nedeniyle **sadece bir kez** gösterilecektir. Lütfen güvenli bir yere kaydedin.
@@ -149,26 +193,26 @@ export function ApiKeyManager() {
                                 </Button>
                             </div>
                             <Button variant="outline" size="sm" onClick={() => setNewKeyData(null)}>
-                                Anladım, Kaydettim
+                                Anladım, Güvenli Bir Yere Kaydettim
                             </Button>
                         </AlertDescription>
                     </Alert>
                 )}
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {loading ? (
-                    Array.from({ length: 3 }).map((_, i) => (
-                        <Card key={i} className="p-6 h-32 animate-pulse bg-muted/20" />
+                    Array.from({ length: 2 }).map((_, i) => (
+                        <Card key={i} className="p-6 h-40 animate-pulse bg-muted/20" />
                     ))
                 ) : keys.length > 0 ? (
                     keys.map((key) => (
-                        <Card key={key.id} className="p-5 border-border hover:border-primary/30 transition-all group">
-                            <div className="flex justify-between items-start mb-4">
+                        <Card key={key.id} className="p-5 border-border hover:border-primary/30 transition-all flex flex-col gap-4">
+                            <div className="flex justify-between items-start">
                                 <div className="space-y-1">
-                                    <h4 className="font-bold text-sm truncate pr-2">{key.name}</h4>
-                                    <p className="text-[10px] text-muted-foreground italic">
-                                        Oluşturulma: {format(new Date(key.createdAt), 'd MMMM yyyy HH:mm', { locale: tr })}
+                                    <h4 className="font-bold text-sm">{key.name}</h4>
+                                    <p className="text-[10px] text-muted-foreground">
+                                        Oluşturulma: {format(new Date(key.createdAt), 'd MMM yyyy', { locale: tr })}
                                     </p>
                                 </div>
                                 <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${key.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
@@ -176,24 +220,42 @@ export function ApiKeyManager() {
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between mt-auto pt-2 border-t border-muted">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className={`text-[10px] h-7 px-2 ${key.isActive ? 'text-amber-600 hover:text-amber-700' : 'text-emerald-600 hover:text-emerald-700'}`}
-                                    onClick={() => toggleStatus(key.id, key.isActive)}
-                                >
-                                    {key.isActive ? 'Durdur' : 'Aktif Et'}
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-[10px] h-7 px-2 text-destructive hover:text-destructive/90 hover:bg-destructive/5"
-                                    onClick={() => deleteKey(key.id)}
-                                >
-                                    <Trash2Icon className="w-3 h-3 mr-1" />
-                                    Sil
-                                </Button>
+                            <div className="flex flex-wrap gap-1">
+                                {key.scopes.map(scope => (
+                                    <Badge key={scope} variant="secondary" className="text-[9px] px-1.5 py-0">
+                                        {scope}
+                                    </Badge>
+                                ))}
+                            </div>
+
+                            <div className="flex items-center justify-between mt-auto pt-3 border-t border-muted">
+                                <div className="flex items-center gap-1.5 text-muted-foreground">
+                                    <ClockIcon className="w-3 h-3" />
+                                    <span className="text-[10px]">
+                                        {key.lastUsedAt 
+                                            ? `Son kullanım: ${formatDistanceToNow(new Date(key.lastUsedAt), { addSuffix: true, locale: tr })}`
+                                            : 'Hiç kullanılmadı'}
+                                    </span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className={`text-[10px] h-7 px-2 ${key.isActive ? 'text-amber-600' : 'text-emerald-600'}`}
+                                        onClick={() => toggleStatus(key.id, key.isActive)}
+                                    >
+                                        {key.isActive ? 'Durdur' : 'Aktif Et'}
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-[10px] h-7 px-2 text-destructive"
+                                        onClick={() => deleteKey(key.id)}
+                                    >
+                                        <Trash2Icon className="w-3 h-3 mr-1" />
+                                        Sil
+                                    </Button>
+                                </div>
                             </div>
                         </Card>
                     ))

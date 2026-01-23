@@ -58,7 +58,7 @@ export async function GET(req: Request) {
                 name: m.user.name,
                 role: m.user.role,
                 isActive: m.user.isActive,
-                isLead: m.isLead
+                isLead: m.user.id === team.leadId
             })),
             currentJob: team.assignments[0]?.job || null,
             status: team.assignments.length > 0 ? 'BUSY' : 'IDLE'

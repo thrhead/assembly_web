@@ -35,6 +35,18 @@ export async function GET(req: Request) {
                         team: { select: { name: true } },
                         worker: { select: { name: true } }
                     }
+                },
+                steps: {
+                    select: {
+                        id: true,
+                        isCompleted: true,
+                        subSteps: {
+                            select: {
+                                id: true,
+                                isCompleted: true
+                            }
+                        }
+                    }
                 }
             }
         })

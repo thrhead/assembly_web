@@ -10,7 +10,7 @@ async function testCostCreation() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             email: 'worker@montaj.com',
-            password: 'worker123'
+            password: process.env.TEST_WORKER_PASSWORD
         })
     });
 

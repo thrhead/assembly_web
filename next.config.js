@@ -49,7 +49,7 @@ const nextConfig = {
                     },
                     {
                         key: 'Content-Security-Policy',
-                        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://res.cloudinary.com; font-src 'self' data:; connect-src 'self' https://*.pusher.com wss://*.pusher.com https://va.vercel-scripts.com; frame-ancestors 'none';"
+                        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' blob: data: https://res.cloudinary.com https://{s}.tile.openstreetmap.org https://unpkg.com; font-src 'self' data:; connect-src 'self' https://*.pusher.com wss://*.pusher.com https://va.vercel-scripts.com; frame-ancestors 'none';"
                     }
                 ]
             }

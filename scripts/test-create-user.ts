@@ -6,12 +6,14 @@ async function main() {
 
     // 1. Login
     console.log('🔑 Logging in as Admin...');
-    const loginRes = await fetch(`${API_URL}/mobile/login`, {
+    const loginRes = await fetch(`${API_URL}/auth/callback/credentials`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            email: 'admin@montaj.com',
-            password: 'admin123'
+            email: 'admin@assembly.com',
+            password: process.env.ADMIN_PASSWORD,
+            redirect: false,
+            callbackUrl: '/'
         })
     });
 

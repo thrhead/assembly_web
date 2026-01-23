@@ -16,7 +16,7 @@ async function main() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             email: 'ahah@montaj.com',
-            password: 'ahh123'
+            password: process.env.TEST_WORKER_PASSWORD
         })
     });
 

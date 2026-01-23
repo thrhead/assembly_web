@@ -6,7 +6,7 @@ import { JobCompletedPayload } from '@/lib/socket-events'
 import { sendJobCompletedEmail } from '@/lib/email'
 import { notifyAdminsOfJobCompletion } from '@/lib/notifications'
 import cloudinary from '@/lib/cloudinary'
-import { triggerWebhook } from '@/lib/webhook-service'
+import { EventBus } from '@/lib/event-bus'
 
 export async function POST(
   req: Request,
@@ -133,7 +133,7 @@ export async function POST(
       }).catch(err => console.error('Email send failed:', err))
     }
 
-    await triggerWebhook('job.completed', {
+    await EventBus.emit('job.completed', {
       jobId: jobId,
       title: updatedJob.title,
       completedBy: {

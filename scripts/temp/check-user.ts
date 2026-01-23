@@ -3,7 +3,7 @@ import { compare } from 'bcryptjs'
 
 async function check() {
     const email = 'manager@montaj.com'
-    const password = 'manager123'
+    const password = process.env.MANAGER_PASSWORD
 
     const user = await prisma.user.findUnique({
         where: { email }

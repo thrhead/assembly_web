@@ -7,7 +7,8 @@ import {
   TrendingUpIcon,
   BellIcon,
   ClockIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  CalendarIcon
 } from 'lucide-react'
 import { getAdminDashboardData } from "@/lib/data/admin-dashboard"
 import { PerformanceChart } from "@/components/charts/performance-chart"

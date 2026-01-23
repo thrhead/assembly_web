@@ -1,7 +1,9 @@
-
 import { PrismaClient } from '@prisma/client';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = process.env.API_URL || 'http://localhost:3000/api';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const TEST_WORKER_PASSWORD = process.env.TEST_WORKER_PASSWORD;
+
 const prisma = new PrismaClient();
 
 async function main() {
@@ -14,7 +16,7 @@ async function main() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             email: 'admin@montaj.com',
-            password: 'admin123'
+            password: ADMIN_PASSWORD
         })
     });
 
@@ -37,7 +39,7 @@ async function main() {
             name: 'Test Worker',
             email: workerEmail,
             role: 'WORKER',
-            password: 'password123'
+            password: TEST_WORKER_PASSWORD
         })
     });
 
@@ -60,9 +62,6 @@ async function main() {
 
     if (!customerId) {
         console.log('Creating customer...');
-        // Create customer logic omitted for brevity, assuming seed data exists or we can create one
-        // For now, let's assume there is at least one customer or create a dummy one if needed.
-        // Actually, let's just use the seed data's customer if possible.
     }
 
     // Create a job assigned to this worker
@@ -74,7 +73,7 @@ async function main() {
         },
         body: JSON.stringify({
             title: 'Test Job for Expense',
-            customerId: customerId || 'cmis3pt0r0000cjgvkuflgf89', // Fallback to a likely ID or handle error
+            customerId: customerId || 'cmis3pt0r0000cjgvkuflgf89',
             priority: 'MEDIUM',
             steps: []
         })
@@ -105,7 +104,7 @@ async function main() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             email: workerEmail,
-            password: 'password123'
+            password: TEST_WORKER_PASSWORD
         })
     });
     const workerToken = (await workerLoginRes.json()).token;
@@ -113,13 +112,12 @@ async function main() {
     // 5. Try to Create Expense (Simulating Mobile App Payload)
     console.log('💸 Creating Expense...');
 
-    // Payload exactly as the mobile app would send it after my fix
     const payload = {
         jobId: job.id,
-        amount: 100.50, // parsed float
+        amount: 100.50,
         currency: 'TRY',
         category: 'Yemek',
-        description: 'Lunch - Burger King', // combined description
+        description: 'Lunch - Burger King',
         date: new Date().toISOString()
     };
 
