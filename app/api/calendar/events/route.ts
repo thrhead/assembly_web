@@ -41,7 +41,6 @@ export async function GET(req: Request) {
         // Role-based filtering
         if (session.user.role === 'CUSTOMER') {
             // Customer can only see their own jobs
-            // Need to find customer record first or assume customerId is linked to user
             const customer = await prisma.customer.findUnique({
                 where: { userId: session.user.id }
             })
@@ -50,7 +49,7 @@ export async function GET(req: Request) {
             } else {
                 return NextResponse.json([]) // No customer profile found
             }
-        } else if (['WORKER', 'TEAM_LEAD'].includes(session.user.role)) {
+        } else if (session.user.role === 'WORKER' || session.user.role === 'TEAM_LEAD') {
             // Worker/Team Lead sees only assigned jobs
             where.assignments = {
                 some: {
@@ -58,9 +57,10 @@ export async function GET(req: Request) {
                         { workerId: session.user.id },
                         {
                             team: {
-                                members: {
-                                    some: { userId: session.user.id }
-                                }
+                                OR: [
+                                    { members: { some: { userId: session.user.id } } },
+                                    { leadId: session.user.id }
+                                ]
                             }
                         }
                     ]

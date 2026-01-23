@@ -1,19 +1,56 @@
 import { prisma } from "@/lib/db";
 
-export async function getCalendarEvents({ start, end }: { start: Date, end: Date }) {
+interface GetCalendarEventsParams {
+    start: Date;
+    end: Date;
+    userId?: string;
+    role?: string;
+}
+
+export async function getCalendarEvents({ start, end, userId, role }: GetCalendarEventsParams) {
+    const where: any = {
+        OR: [
+            { scheduledDate: { gte: start, lte: end } },
+            { scheduledEndDate: { gte: start, lte: end } },
+            { 
+                AND: [
+                    { scheduledDate: { lte: start } },
+                    { scheduledEndDate: { gte: end } }
+                ]
+            }
+        ]
+    };
+
+    if (role === 'CUSTOMER' && userId) {
+        const customer = await prisma.customer.findUnique({ where: { userId } });
+        if (customer) {
+            where.customerId = customer.id;
+        } else {
+            return [];
+        }
+    } else if (role === 'WORKER' || role === 'TEAM_LEAD') {
+        if (userId) {
+            where.assignments = {
+                some: {
+                    OR: [
+                        { workerId: userId },
+                        {
+                            team: {
+                                OR: [
+                                    { members: { some: { userId } } },
+                                    { leadId: userId }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            };
+        }
+    }
+    // For ADMIN and MANAGER, we don't add assignment filters, so they see all jobs.
+
     const jobs = await prisma.job.findMany({
-        where: {
-            OR: [
-                {
-                    scheduledDate: {
-                        gte: start,
-                        lte: end
-                    }
-                },
-                // Include jobs that span across the range or end within it
-                // Simplified for now based on typical calendar usage
-            ]
-        },
+        where,
         include: {
             customer: {
                 select: { company: true }

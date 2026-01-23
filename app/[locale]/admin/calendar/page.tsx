@@ -5,7 +5,7 @@ import { redirect } from '@/lib/navigation'
 export default async function CalendarPage() {
     const session = await auth()
 
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'TEAM_LEAD')) {
+    if (!session || !['ADMIN', 'MANAGER', 'TEAM_LEAD'].includes(session.user.role)) {
         redirect('/login')
     }
 

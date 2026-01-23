@@ -6,9 +6,14 @@ import { auth } from '@/lib/auth'
 export async function getCalendarEventsAction(start: Date, end: Date) {
     const session = await auth()
 
-    if (!session || !['ADMIN', 'TEAM_LEAD'].includes(session.user.role)) {
+    if (!session) {
         throw new Error('Yetkisiz işlem')
     }
 
-    return await getCalendarEvents({ start, end })
+    return await getCalendarEvents({ 
+        start, 
+        end, 
+        userId: session.user.id, 
+        role: session.user.role 
+    })
 }

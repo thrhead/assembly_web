@@ -7,7 +7,8 @@ import {
     BriefcaseIcon,
     CheckCircle2Icon,
     XIcon,
-    FileBarChartIcon
+    FileBarChartIcon,
+    CalendarIcon
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -16,6 +17,11 @@ const sidebarItems = [
         title: 'Dashboard',
         href: '/manager',
         icon: LayoutDashboardIcon
+    },
+    {
+        title: 'Takvim',
+        href: '/admin/calendar',
+        icon: CalendarIcon
     },
     {
         title: 'İşler',

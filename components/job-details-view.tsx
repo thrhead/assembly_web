@@ -7,6 +7,7 @@ import { tr } from "date-fns/locale"
 import { CheckCircle2, Circle, Clock, User, Briefcase, Calendar, MapPin, ChevronDown, ChevronUp, ImageIcon } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
+import { Progress } from "@/components/ui/progress"
 
 interface JobDetailsProps {
     job: {
@@ -64,6 +65,16 @@ export function JobDetailsView({ job }: JobDetailsProps) {
     console.log('JobDetailsView received job:', JSON.stringify(job, null, 2))
     const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({})
 
+    const totalSteps = job.steps.length
+    const completedSteps = job.steps.filter(s => s.isCompleted).length
+    const progressPercentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0
+
+    const getProgressColor = (percent: number) => {
+        if (percent === 100) return "bg-green-600"
+        if (percent > 30) return "bg-blue-600"
+        return "bg-orange-500"
+    }
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'COMPLETED': return 'bg-green-500'
@@ -93,6 +104,21 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                             <div>
                                 <h2 className="text-xl font-bold">{job.title}</h2>
                                 <p className="text-sm text-gray-500 mt-1">#{job.id.slice(-6)}</p>
+                                
+                                <div className="mt-4 space-y-2">
+                                    <div className="flex justify-between items-end">
+                                        <span className="text-sm font-medium text-gray-700">İş İlerlemesi</span>
+                                        <span className="text-sm font-bold text-gray-900">{progressPercentage}%</span>
+                                    </div>
+                                    <Progress 
+                                        value={progressPercentage} 
+                                        className="h-2 w-full bg-gray-100"
+                                        indicatorClassName={getProgressColor(progressPercentage)}
+                                    />
+                                    <p className="text-[10px] text-gray-500 text-right">
+                                        {completedSteps}/{totalSteps} Adım Tamamlandı
+                                    </p>
+                                </div>
                             </div>
                             <Badge className={getStatusColor(job.status)}>
                                 {job.status === 'IN_PROGRESS' ? 'Devam Ediyor' :
