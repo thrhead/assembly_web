@@ -19,9 +19,6 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 
 const nextConfig = {
     serverExternalPackages: ['@prisma/client', 'bcryptjs'],
-    experimental: {
-        turbopack: {},
-    },
     async headers() {
         return [
             {
