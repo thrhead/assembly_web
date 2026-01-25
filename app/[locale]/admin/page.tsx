@@ -60,7 +60,7 @@ export default async function AdminDashboard() {
 
       {/* Performance Chart */}
       <div>
-        <h2 className="text-xl font-bold text-foreground mb-4">Haftalık İş Tamamlama</h2>
+        <h2 className="text-xl font-bold text-foreground mb-4">Haftalık Tamamlanan Adımlar</h2>
         <div className="bg-card border border-border p-6 rounded-2xl shadow-sm h-[400px]">
           <PerformanceChart data={weeklyStats} />
         </div>

@@ -10,7 +10,7 @@ export async function getAdminDashboardData() {
     pendingApprovalsCount,
     pendingCostsAgg,
     approvedCostsAgg,
-    weeklyCompletedJobs
+    weeklyCompletedSteps
   ] = await Promise.all([
     prisma.user.findMany({
       where: {
@@ -54,15 +54,15 @@ export async function getAdminDashboardData() {
       where: { status: 'APPROVED' },
       _sum: { amount: true }
     }),
-    prisma.job.findMany({
+    prisma.jobStep.findMany({
       where: {
-        status: 'COMPLETED',
-        completedDate: {
+        isCompleted: { equals: true },
+        completedAt: {
           gte: sevenDaysAgo
         }
       },
       select: {
-        completedDate: true
+        completedAt: true
       }
     })
   ])
@@ -77,9 +77,9 @@ export async function getAdminDashboardData() {
     d.setDate(d.getDate() - (6 - i)) // Last 7 days including today
     const dateKey = d.toISOString().split('T')[0]
     const displayDate = d.toLocaleDateString('tr-TR', { weekday: 'short' })
-    
-    const count = weeklyCompletedJobs.filter(job => 
-      job.completedDate && job.completedDate.toISOString().split('T')[0] === dateKey
+
+    const count = weeklyCompletedSteps.filter(step =>
+      step.completedAt && step.completedAt.toISOString().split('T')[0] === dateKey
     ).length
 
     return {
