@@ -14,12 +14,16 @@ Bu proje; Next.js 16, React Native ve modern web teknolojileri kullanılarak gel
 * **Otomasyon:** Alt görevler tamamlandığında ana görevin otomatik kapanması.
 * **Görev Bloklama:** Sorunlu adımları işaretleme, bloklama nedeni ve not ekleme.
 
-### 📊 Gelişmiş Raporlama Sistemi (Yeni)
-* **Dinamik Dashboard:** KPI kartları ile toplam iş, maliyet ve bekleyen onay takibi.
+### 📊 Gelişmiş Raporlama Sistemi (Güncel)
+* **Dinamik Dashboard:** KPI kartları ve "Haftalık Tamamlanan Adımlar" (Step-based) trend grafiği.
 * **Zaman Bazlı Analiz:** Toplam harcama trendleri ve kategori bazlı (Yol, Yemek, Malzeme vb.) harcama grafikleri.
 * **Otomatik Filtreleme:** Tarih aralığı, iş durumu, montaj seçimi ve kategoriye göre anlık güncellenen raporlar.
 * **Dışa Aktarma:** Raporların Excel (.xlsx) ve PDF formatlarında tek tıkla indirilmesi.
-* **Onay Yönetimi:** Rapor üzerinden bekleyen onaylara doğrudan erişim ve hızlı aksiyon.
+* **Onay Yönetimi:** Rapor üzerinden bekleyen onaylara doğrudan erişim.
+
+### 🛡️ Güvenlik ve Validasyon
+* **Zorunlu Fotoğraf Kontrolü (API):** Alt iş adımları tamamlanırken backend tarafında fotoğraf kontrolü yapılır.
+* **Rol Bazlı Erişim:** API rotaları ve sayfa erişimleri rol bazlı (RBAC) korunur.
 
 ### 👥 Ekip ve Rol Yönetimi
 * **Gelişmiş Yetkilendirme:** 5 farklı rol desteği (Admin, Manager, Team Lead, Worker, Customer).
@@ -53,11 +57,21 @@ Bu proje; Next.js 16, React Native ve modern web teknolojileri kullanılarak gel
 * **Storage:** AsyncStorage
 
 ### Backend & Database
+### Backend & Database
 * **API:** Next.js API Routes & Server Actions
+* **Storage:** Cloudinary (Stream Uploads - Vercel Uyumlu)
 * **Database:** PostgreSQL (Neon Serverless)
 * **ORM:** Prisma ORM (Optimize edilmiş indeksler ile)
 * **Auth:** NextAuth.js v5 (Beta)
-* **Real-time:** Socket.IO (Custom Server)
+* **Real-time:** Socket.IO
+
+### 🚀 Vercel Deployment (Önemli)
+Vercel üzerinde sorunsuz çalışması için aşağıdaki Çevre Değişkenlerinin (Environment Variables) tanımlanması zorunludur:
+* `CLOUDINARY_CLOUD_NAME`
+* `CLOUDINARY_API_KEY`
+* `CLOUDINARY_API_SECRET`
+
+*Not: Fotoğraf yükleme işlemleri yerel dosya sistemi yerine doğrudan Cloudinary stream üzerinden yapılır.*
 
 ### Kalite ve Test
 * **Testing:** Vitest, @testing-library/react
