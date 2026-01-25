@@ -1,7 +1,7 @@
 
 import type { NextAuthConfig } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { loginSchema } from "@/lib/validations"
+import { loginSchema } from "@/lib/validations-edge"
 
 export const authConfig = {
     providers: [
