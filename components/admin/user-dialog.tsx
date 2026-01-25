@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { registerSchema } from '@/lib/validations'
+import { registerSchema, CreateUserAdminInput } from '@/lib/validations-edge'
 import {
   Dialog,
   DialogContent,

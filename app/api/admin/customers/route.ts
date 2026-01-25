@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db'
 import { verifyAdmin, verifyAdminOrManager } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { hash } from 'bcryptjs'
-import { createCustomerSchema } from '@/lib/validations'
+import { createCustomerSchema } from '@/lib/validations-edge'
 
 export async function GET(req: Request) {
     try {

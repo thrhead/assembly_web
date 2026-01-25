@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
-import { registerSchema } from '@/lib/validations'
+import { registerSchema } from '@/lib/validations-edge'
 import { hash } from 'bcryptjs'
 
 export async function createUserAction(data: z.infer<typeof registerSchema>) {

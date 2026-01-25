@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { hash } from 'bcryptjs'
 import { z } from 'zod'
-import { registerSchema } from '@/lib/validations'
+import { registerSchema } from '@/lib/validations-edge'
 import { auth } from '@/lib/auth'
 
 export async function GET(req: Request) {

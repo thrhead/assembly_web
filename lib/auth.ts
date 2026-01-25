@@ -2,7 +2,7 @@ import NextAuth, { DefaultSession } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { compare } from "bcryptjs"
 import { prisma } from "@/lib/db"
-import { loginSchema } from "@/lib/validations"
+import { loginSchema } from "@/lib/validations-edge"
 import { authConfig } from "./auth.config"
 
 declare module "next-auth" {
