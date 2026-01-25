@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
-import { z } from 'zod'
-
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
+import cloudinary from '@/lib/cloudinary'
 
 export async function POST(
     req: Request,
@@ -33,6 +30,7 @@ export async function POST(
             return NextResponse.json({ error: 'No file provided' }, { status: 400 })
         }
 
+        // Convert file to buffer
         let buffer: Buffer
         try {
             if (typeof file.arrayBuffer === 'function') {
@@ -48,19 +46,29 @@ export async function POST(
             return NextResponse.json({ error: 'Failed to read file' }, { status: 500 })
         }
 
-        // Create directory if not exists
-        const uploadDir = join(process.cwd(), 'public', 'uploads', 'jobs', params.id)
-        await mkdir(uploadDir, { recursive: true })
+        // Upload to Cloudinary
+        const uploadResult: any = await new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                {
+                    folder: `jobs/${params.id}`,
+                    resource_type: 'image',
+                    public_id: `${params.stepId}_${Date.now()}` // Optional: nicer filenames in cloud
+                },
+                (error, result) => {
+                    if (error) reject(error)
+                    else resolve(result)
+                }
+            )
+            uploadStream.end(buffer)
+        })
 
-        const filename = `${params.stepId}_${Date.now()}_${file.name}`
-        const filepath = join(uploadDir, filename)
+        if (!uploadResult || !uploadResult.secure_url) {
+            throw new Error('Cloudinary upload failed')
+        }
 
-        // Save file
-        await writeFile(filepath, buffer)
+        const photoUrl = uploadResult.secure_url
 
         // Create database record
-        const photoUrl = `/uploads/jobs/${params.id}/${filename}`
-
         const photo = await prisma.stepPhoto.create({
             data: {
                 stepId: params.stepId,
