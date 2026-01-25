@@ -38,6 +38,21 @@ export async function POST(
       }
     }
 
+    // MANDATORY PHOTO CHECK
+    // If we are marking as completed (!step.isCompleted means we are setting it to true)
+    if (!step.isCompleted) {
+      const photoCount = await prisma.stepPhoto.count({
+        where: { stepId: params.stepId }
+      });
+
+      if (photoCount === 0) {
+        return NextResponse.json(
+          { error: 'Bu adımı tamamlamak için en az bir fotoğraf yüklemelisiniz.' },
+          { status: 400 }
+        )
+      }
+    }
+
     // 2. Check if all substeps are completed
     const subSteps = await prisma.jobSubStep.findMany({
       where: { stepId: params.stepId }

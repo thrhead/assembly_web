@@ -28,6 +28,21 @@ export async function POST(
             return NextResponse.json({ error: 'Substep not found' }, { status: 404 })
         }
 
+        // MANDATORY PHOTO CHECK
+        // If we are marking as completed (!subStep.isCompleted means we are setting it to true)
+        if (!subStep.isCompleted) {
+            const photoCount = await prisma.stepPhoto.count({
+                where: { subStepId: params.sid }
+            });
+
+            if (photoCount === 0) {
+                return NextResponse.json(
+                    { error: 'Bu alt adımı tamamlamak için en az bir fotoğraf yüklemelisiniz.' },
+                    { status: 400 }
+                )
+            }
+        }
+
         const updatedSubStep = await prisma.jobSubStep.update({
             where: { id: params.sid },
             data: {
