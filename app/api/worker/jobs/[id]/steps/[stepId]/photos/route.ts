@@ -53,11 +53,6 @@ export async function POST(
             return NextResponse.json({ error: 'Failed to read file' }, { status: 500 })
         }
 
-        // Create Data URI for upload
-        // const base64Data = buffer.toString('base64');
-        // const fileType = file.type || 'image/jpeg';
-        // const dataURI = `data:${fileType};base64,${base64Data}`;
-
         // Hex Dump Debug
         const headerHex = buffer.subarray(0, 20).toString('hex');
         console.log('[Photo Upload Debug] File Integrity Check:', {
@@ -71,20 +66,27 @@ export async function POST(
             return NextResponse.json({ error: 'Empty file received' }, { status: 400 })
         }
 
-        // Upload to Cloudinary using stream (safer for binary) with auto detection
-        const uploadResult: any = await new Promise((resolve, reject) => {
-            const uploadStream = cloudinary.uploader.upload_stream(
-                {
-                    folder: `jobs/${params.id}`,
-                    resource_type: 'auto', // Let Cloudinary detect (image/video/raw)
-                    public_id: `${params.stepId}_${Date.now()}`
-                },
-                (error, result) => {
-                    if (error) reject(error)
-                    else resolve(result)
-                }
-            )
-            uploadStream.end(buffer)
+        // Create Data URI for upload
+        const base64Data = buffer.toString('base64');
+        const fileType = file.type || 'image/jpeg';
+        const dataURI = `data:${fileType};base64,${base64Data}`;
+
+        // Hex Dump Debug
+        // const headerHex = buffer.subarray(0, 20).toString('hex'); // This was moved up
+        console.log('[Photo Upload Debug] File Integrity Check:', {
+            size: buffer.length,
+            headerHex,
+            isJpeg: headerHex.startsWith('ffd8ff'),
+            isPng: headerHex.startsWith('89504e47'),
+            base64Start: base64Data.substring(0, 50)
+        });
+
+        // Upload to Cloudinary using standard upload (Base64 Data URI)
+        // This ensures Cloudinary treats it as an image and fails if it's not valid image data.
+        const uploadResult: any = await cloudinary.uploader.upload(dataURI, {
+            folder: `jobs/${params.id}`,
+            resource_type: 'image', // FORCE image type
+            public_id: `${params.stepId}_${Date.now()}`
         });
 
         if (!uploadResult || !uploadResult.secure_url) {
