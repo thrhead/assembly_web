@@ -68,7 +68,14 @@ export async function POST(
 
         // Create Data URI for upload
         const base64Data = buffer.toString('base64');
-        const fileType = file.type || 'image/jpeg';
+
+        // Sanitize MIME type
+        let fileType = file.type || 'image/jpeg';
+        if (fileType === 'image' || !fileType.includes('/')) {
+            fileType = 'image/jpeg';
+            console.warn('[Photo Upload] Invalid MIME type detected, defaulting to image/jpeg');
+        }
+
         const dataURI = `data:${fileType};base64,${base64Data}`;
 
         // Hex Dump Debug
@@ -78,6 +85,7 @@ export async function POST(
             headerHex,
             isJpeg: headerHex.startsWith('ffd8ff'),
             isPng: headerHex.startsWith('89504e47'),
+            resolvedMimeType: fileType,
             base64Start: base64Data.substring(0, 50)
         });
 
