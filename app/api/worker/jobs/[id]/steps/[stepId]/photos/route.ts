@@ -8,6 +8,13 @@ export async function POST(
     props: { params: Promise<{ id: string; stepId: string }> }
 ) {
     const params = await props.params
+
+    // Debug Cloudinary Config
+    console.log('[Photo Upload Debug] Env Check:', {
+        cloudNameExists: !!process.env.CLOUDINARY_CLOUD_NAME,
+        apiKeyExists: !!process.env.CLOUDINARY_API_KEY,
+        apiSecretExists: !!process.env.CLOUDINARY_API_SECRET
+    });
     try {
         const session = await verifyAuth(req)
         if (!session || (session.user.role !== 'WORKER' && session.user.role !== 'TEAM_LEAD')) {
@@ -113,8 +120,16 @@ export async function POST(
         }
 
         return NextResponse.json(photo)
-    } catch (error) {
-        console.error('Photo upload error:', error)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    } catch (error: any) {
+        console.error('[Photo Upload CRITICAL ERROR]:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+            params: await props.params
+        })
+        return NextResponse.json({
+            error: 'Internal Server Error',
+            details: error.message
+        }, { status: 500 })
     }
 }
