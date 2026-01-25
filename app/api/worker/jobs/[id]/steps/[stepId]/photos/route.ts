@@ -53,21 +53,19 @@ export async function POST(
             return NextResponse.json({ error: 'Failed to read file' }, { status: 500 })
         }
 
-        // Upload to Cloudinary
-        const uploadResult: any = await new Promise((resolve, reject) => {
-            const uploadStream = cloudinary.uploader.upload_stream(
-                {
-                    folder: `jobs/${params.id}`,
-                    resource_type: 'image',
-                    public_id: `${params.stepId}_${Date.now()}` // Optional: nicer filenames in cloud
-                },
-                (error, result) => {
-                    if (error) reject(error)
-                    else resolve(result)
-                }
-            )
-            uploadStream.end(buffer)
-        })
+        // Create Data URI for upload
+        const base64Data = buffer.toString('base64');
+        const fileType = file.type || 'image/jpeg'; // Default to jpeg if type missing
+        const dataURI = `data:${fileType};base64,${base64Data}`;
+
+        console.log('[Photo Upload Debug] Uploading as Data URI, length:', base64Data.length);
+
+        // Upload to Cloudinary using standard upload (not stream) which is often more stable for Data URIs
+        const uploadResult: any = await cloudinary.uploader.upload(dataURI, {
+            folder: `jobs/${params.id}`,
+            resource_type: 'image',
+            public_id: `${params.stepId}_${Date.now()}`
+        });
 
         if (!uploadResult || !uploadResult.secure_url) {
             throw new Error('Cloudinary upload failed')
