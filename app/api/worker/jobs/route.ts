@@ -70,7 +70,8 @@ export async function GET(req: Request) {
             id: true,
             isCompleted: true
           }
-        }
+        },
+        costs: true
       }
     })
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { POST, DELETE } from './route'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 import { NextResponse } from 'next/server'
 
 // Mock dependencies
@@ -14,8 +14,8 @@ vi.mock('@/lib/db', () => ({
     }
 }))
 
-vi.mock('@/lib/auth', () => ({
-    auth: vi.fn()
+vi.mock('@/lib/auth-helper', () => ({
+    verifyAuth: vi.fn()
 }))
 
 describe('Push Token API', () => {
@@ -25,7 +25,7 @@ describe('Push Token API', () => {
 
     describe('POST /api/user/push-token', () => {
         it('should return 401 if not authenticated', async () => {
-            (auth as any).mockResolvedValue(null)
+            (verifyAuth as any).mockResolvedValue(null)
             const req = new Request('http://localhost/api/user/push-token', {
                 method: 'POST',
                 body: JSON.stringify({ token: 'test-token' })
@@ -36,7 +36,7 @@ describe('Push Token API', () => {
         })
 
         it('should register a push token', async () => {
-            (auth as any).mockResolvedValue({ user: { id: 'user-1' } })
+            (verifyAuth as any).mockResolvedValue({ user: { id: 'user-1' } })
             const req = new Request('http://localhost/api/user/push-token', {
                 method: 'POST',
                 body: JSON.stringify({ token: 'test-token' })
@@ -45,7 +45,10 @@ describe('Push Token API', () => {
             await POST(req)
             expect(prisma.pushToken.upsert).toHaveBeenCalledWith({
                 where: { token: 'test-token' },
-                update: { userId: 'user-1' },
+                update: {
+                    userId: 'user-1',
+                    updatedAt: expect.any(Date)
+                },
                 create: { token: 'test-token', userId: 'user-1' }
             })
         })
@@ -53,7 +56,7 @@ describe('Push Token API', () => {
 
     describe('DELETE /api/user/push-token', () => {
         it('should delete a push token', async () => {
-            (auth as any).mockResolvedValue({ user: { id: 'user-1' } })
+            (verifyAuth as any).mockResolvedValue({ user: { id: 'user-1' } })
             const req = new Request('http://localhost/api/user/push-token', {
                 method: 'DELETE',
                 body: JSON.stringify({ token: 'test-token' })

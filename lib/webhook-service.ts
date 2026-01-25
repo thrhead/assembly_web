@@ -3,6 +3,13 @@ import { prisma } from './db'
 import crypto from 'crypto'
 import { logIntegrationEvent } from './api-security'
 
+const MAX_RETRIES = 3;
+const INITIAL_DELAY = 1000; // 1s
+
+async function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export async function triggerWebhook(event: string, payload: any) {
     try {
         const webhooks = await prisma.webhook.findMany({
@@ -10,7 +17,6 @@ export async function triggerWebhook(event: string, payload: any) {
         })
 
         const results = await Promise.allSettled(webhooks.map(async (webhook) => {
-            const startTime = Date.now()
             const body = JSON.stringify({
                 event,
                 timestamp: new Date().toISOString(),
@@ -22,7 +28,6 @@ export async function triggerWebhook(event: string, payload: any) {
                 'X-Assembly-Tracker-Event': event
             }
 
-            // Eğer secret varsa payloadi imzala
             if (webhook.secret) {
                 const signature = crypto
                     .createHmac('sha256', webhook.secret)
@@ -31,43 +36,65 @@ export async function triggerWebhook(event: string, payload: any) {
                 headers['X-Hub-Signature-256'] = `sha256=${signature}`
             }
 
-            let statusCode = 0
-            let responseData = null
-            let errorMsg = null
+            let attempt = 0;
+            let lastStatusCode = 0;
+            let lastResponseData = null;
+            let lastErrorMsg = null;
+            let totalStartTime = Date.now();
 
-            try {
-                const response = await fetch(webhook.url, {
-                    method: 'POST',
-                    headers,
-                    body,
-                    signal: AbortSignal.timeout(10000) // 10s timeout
-                })
+            while (attempt <= MAX_RETRIES) {
+                const startTime = Date.now();
+                try {
+                    const response = await fetch(webhook.url, {
+                        method: 'POST',
+                        headers,
+                        body,
+                        signal: AbortSignal.timeout(10000)
+                    })
 
-                statusCode = response.status
-                responseData = await response.text()
+                    lastStatusCode = response.status;
+                    lastResponseData = await response.text();
 
-                if (!response.ok) {
-                    throw new Error(`Webhook failed: ${response.statusText}`)
+                    if (response.ok) {
+                        await logIntegrationEvent({
+                            webhookId: webhook.id,
+                            endpoint: webhook.url,
+                            method: 'POST',
+                            statusCode: lastStatusCode,
+                            duration: Date.now() - startTime,
+                            payload,
+                            response: lastResponseData || undefined,
+                        });
+                        return { url: webhook.url, status: response.status, attempts: attempt + 1 };
+                    }
+
+                    lastErrorMsg = `Status: ${response.status} ${response.statusText}`;
+                } catch (err: any) {
+                    lastErrorMsg = err.message;
+                    lastStatusCode = lastStatusCode || 0;
                 }
 
-                return { url: webhook.url, status: response.status }
-            } catch (err: any) {
-                errorMsg = err.message
-                throw err
-            } finally {
-                const duration = Date.now() - startTime
-                // Log the webhook attempt
-                await logIntegrationEvent({
-                    webhookId: webhook.id,
-                    endpoint: webhook.url,
-                    method: 'POST',
-                    statusCode,
-                    duration,
-                    payload,
-                    response: responseData,
-                    error: errorMsg
-                })
+                attempt++;
+                if (attempt <= MAX_RETRIES) {
+                    const delay = INITIAL_DELAY * Math.pow(2, attempt - 1);
+                    console.log(`Webhook retry ${attempt}/${MAX_RETRIES} for ${webhook.url} after ${delay}ms`);
+                    await sleep(delay);
+                }
             }
+
+            // All retries failed
+            await logIntegrationEvent({
+                webhookId: webhook.id,
+                endpoint: webhook.url,
+                method: 'POST',
+                statusCode: lastStatusCode,
+                duration: Date.now() - totalStartTime,
+                payload,
+                response: lastResponseData || undefined,
+                error: `Failed after ${MAX_RETRIES + 1} attempts. Last error: ${lastErrorMsg}`
+            });
+
+            throw new Error(`Webhook failed after ${MAX_RETRIES + 1} attempts`);
         }))
 
         console.log(`Webhook triggers for ${event}:`, results)

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import DOMPurify from 'isomorphic-dompurify'
 
 // Auth Schemas
 export const loginSchema = z.object({
@@ -17,7 +18,7 @@ export const registerSchema = z.object({
 // Job Schemas
 export const jobSchema = z.object({
   title: z.string().min(3, 'Başlık en az 3 karakter olmalıdır').max(100, 'Başlık en fazla 100 karakter olabilir'),
-  description: z.string().optional(),
+  description: z.string().optional().transform(val => val ? DOMPurify.sanitize(val) : val),
   customerId: z.string().cuid('Geçerli bir müşteri seçiniz'),
   teamId: z.string().cuid().optional(),
   estimatedHours: z.number().int().positive().optional(),
@@ -32,7 +33,7 @@ export const jobStepSchema = z.object({
 
 export const updateJobStepSchema = z.object({
   isCompleted: z.boolean(),
-  notes: z.string().optional(),
+  notes: z.string().optional().transform(val => val ? DOMPurify.sanitize(val) : val),
 })
 
 // User Schemas

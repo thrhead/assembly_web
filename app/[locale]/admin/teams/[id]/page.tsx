@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "@/lib/navigation"
 import { Link } from "@/lib/navigation"
-import { ArrowLeft, Users, Briefcase, Clock, TrendingUp, Wallet, CheckCircle2, Crown } from "lucide-react"
+import { ArrowLeft, Users, Briefcase, Clock, TrendingUp, Wallet, CheckCircle2, Crown, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getTeam, getTeamDetailedReports } from "@/lib/data/teams"
 import { TeamFinancialCharts } from "@/components/admin/team-financial-charts"
+import { TeamPerformanceTrend } from "@/components/admin/team-performance-trend"
+import { TeamMemberStats } from "@/components/admin/team-member-stats"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 
@@ -43,7 +45,7 @@ export default async function TeamDetailPage(props: {
     return (
         <div className="space-y-6 p-8">
             <div className="flex items-center gap-4">
-                 <Link href="/admin/teams">
+                <Link href="/admin/teams">
                     <Button variant="ghost" size="icon">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
@@ -59,37 +61,37 @@ export default async function TeamDetailPage(props: {
 
             {/* KPI Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
+                <Card className="border-none shadow-sm bg-primary/5">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Toplam Montaj</CardTitle>
-                        <Briefcase className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Verimlilik Skoru</CardTitle>
+                        <Zap className="h-4 w-4 text-primary animate-pulse" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.totalJobs}</div>
-                        <p className="text-xs text-muted-foreground">Şimdiye kadar atanan</p>
+                        <div className="text-2xl font-bold text-primary">{stats.efficiencyScore}/100</div>
+                        <p className="text-xs text-muted-foreground">Genel performans puanı</p>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="border-none shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground">Çalışma Saati</CardTitle>
                         <Clock className="h-4 w-4 text-blue-600" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.totalWorkingHours} Saat</div>
-                        <p className="text-xs text-muted-foreground">Sahada geçirilen süre</p>
+                        <p className="text-xs text-muted-foreground">Sahada geçirilen toplam süre</p>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="border-none shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground">Başarı Oranı</CardTitle>
                         <TrendingUp className="h-4 w-4 text-green-600" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">%{stats.successRate}</div>
-                        <p className="text-xs text-muted-foreground">Tamamlanma yüzdesi</p>
+                        <p className="text-xs text-muted-foreground">İş tamamlama yüzdesi</p>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="border-none shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground">Toplam Harcama</CardTitle>
                         <Wallet className="h-4 w-4 text-orange-600" />
@@ -113,50 +115,37 @@ export default async function TeamDetailPage(props: {
                     <div className="grid gap-4 md:grid-cols-7">
                         <Card className="col-span-4">
                             <CardHeader>
-                                <CardTitle>Ekip Hakkında</CardTitle>
+                                <CardTitle>Ekip Performans Trendi</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-4 border rounded-lg bg-gray-50">
-                                        <p className="text-sm text-muted-foreground mb-1">Takım Lideri</p>
-                                        <p className="font-semibold text-lg">{team.lead?.name || "Atanmamış"}</p>
-                                    </div>
-                                    <div className="p-4 border rounded-lg bg-gray-50">
-                                        <p className="text-sm text-muted-foreground mb-1">Üye Sayısı</p>
-                                        <p className="font-semibold text-lg">{team.members.length} Kişi</p>
-                                    </div>
-                                    <div className="p-4 border rounded-lg bg-gray-50">
-                                        <p className="text-sm text-muted-foreground mb-1">Kuruluş Tarihi</p>
-                                        <p className="font-semibold">{format(new Date(team.createdAt), 'd MMMM yyyy', { locale: tr })}</p>
-                                    </div>
-                                    <div className="p-4 border rounded-lg bg-gray-50">
-                                        <p className="text-sm text-muted-foreground mb-1">Durum</p>
-                                        <Badge variant={team.isActive ? "success" : "destructive"}>
-                                            {team.isActive ? "Aktif Ekip" : "Pasif Ekip"}
-                                        </Badge>
-                                    </div>
-                                </div>
+                            <CardContent>
+                                <TeamPerformanceTrend data={stats.monthlyTrend} />
                             </CardContent>
                         </Card>
                         <Card className="col-span-3">
                             <CardHeader>
-                                <CardTitle>Harcama Dağılımı</CardTitle>
+                                <CardTitle>Ekip Bilgileri</CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    {stats.categoryBreakdown.length > 0 ? (
-                                        stats.categoryBreakdown.map((cat, i) => (
-                                            <div key={i} className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="h-2 w-2 rounded-full bg-primary" />
-                                                    <span className="text-sm">{cat.name}</span>
-                                                </div>
-                                                <span className="text-sm font-medium">₺{cat.value.toLocaleString('tr-TR')}</span>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="text-sm text-muted-foreground text-center py-8">Henüz harcama kaydı yok</p>
-                                    )}
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 gap-4">
+                                    <div className="p-4 border rounded-lg bg-gray-50/50">
+                                        <p className="text-sm text-muted-foreground mb-1">Takım Lideri</p>
+                                        <div className="flex items-center gap-2">
+                                            <Crown className="h-4 w-4 text-yellow-500" />
+                                            <p className="font-semibold text-lg">{team.lead?.name || "Atanmamış"}</p>
+                                        </div>
+                                    </div>
+                                    <div className="p-4 border rounded-lg bg-gray-50/50">
+                                        <p className="text-sm text-muted-foreground mb-1">Üye Sayısı</p>
+                                        <p className="font-semibold">{team.members.length} Kişi</p>
+                                    </div>
+                                    <div className="p-4 border rounded-lg bg-gray-50/50">
+                                        <p className="text-sm text-muted-foreground mb-1">Kuruluş</p>
+                                        <p className="font-semibold text-sm">{format(new Date(team.createdAt), 'd MMMM yyyy', { locale: tr })}</p>
+                                    </div>
+                                    <div className="p-4 border rounded-lg bg-gray-50/50">
+                                        <p className="text-sm text-muted-foreground mb-1">Toplam Tamamlanan İş</p>
+                                        <p className="font-semibold">{stats.completedJobs} / {stats.totalJobs}</p>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -164,13 +153,21 @@ export default async function TeamDetailPage(props: {
                 </TabsContent>
 
                 <TabsContent value="members" className="space-y-4">
+                    <Card className="border-none shadow-none bg-transparent">
+                        <CardHeader className="px-0">
+                            <CardTitle>Üye Performans İstatistikleri</CardTitle>
+                        </CardHeader>
+                        <CardContent className="px-0">
+                            <TeamMemberStats members={stats.memberStats} />
+                        </CardContent>
+                    </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Üye Listesi</CardTitle>
+                            <CardTitle>Ekip Üyeleri</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {team.members.map((member) => {
+                                {team.members.map((member: any) => {
                                     const isLead = team.leadId === member.userId;
                                     return (
                                         <div key={member.id} className={`flex items-center justify-between p-4 border rounded-lg ${isLead ? 'bg-indigo-50 border-indigo-200' : 'bg-white'}`}>
@@ -213,14 +210,14 @@ export default async function TeamDetailPage(props: {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {jobs.map((job) => (
+                                {jobs.map((job: any) => (
                                     <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-3 mb-1">
                                                 <Link href={`/admin/jobs/${job.id}`} className="font-bold text-indigo-600 hover:underline">
                                                     {job.title}
                                                 </Link>
-                                                <Badge variant={job.status === 'COMPLETED' ? 'success' : job.status === 'IN_PROGRESS' ? 'info' : 'secondary'}>
+                                                <Badge variant={job.status === 'COMPLETED' ? 'outline' : job.status === 'IN_PROGRESS' ? 'secondary' : 'secondary'}>
                                                     {job.status}
                                                 </Badge>
                                             </div>
@@ -230,7 +227,7 @@ export default async function TeamDetailPage(props: {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-sm font-medium">₺{job.costs.reduce((sum, c) => sum + c.amount, 0).toLocaleString('tr-TR')}</p>
+                                            <p className="text-sm font-medium">₺{job.costs.reduce((sum: number, c: any) => sum + c.amount, 0).toLocaleString('tr-TR')}</p>
                                             <p className="text-[10px] text-muted-foreground">Toplam Maliyet</p>
                                         </div>
                                     </div>
@@ -270,8 +267,8 @@ export default async function TeamDetailPage(props: {
                                     <div className="flex justify-between border-b pb-2">
                                         <span className="text-muted-foreground">En Çok Harcama Yapılan Kategori:</span>
                                         <span className="font-medium">
-                                            {stats.categoryBreakdown.length > 0 
-                                                ? stats.categoryBreakdown.reduce((prev, current) => (prev.value > current.value) ? prev : current).name 
+                                            {stats.categoryBreakdown.length > 0
+                                                ? (stats.categoryBreakdown.reduce((prev: any, current: any) => (prev.value > current.value) ? prev : current) as any).name
                                                 : "Yok"}
                                         </span>
                                     </div>

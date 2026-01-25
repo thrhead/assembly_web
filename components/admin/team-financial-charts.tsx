@@ -35,8 +35,8 @@ export function TeamFinancialCharts({ data }: ChartProps) {
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                     </Pie>
-                    <Tooltip 
-                        formatter={(value: number) => `₺${value.toLocaleString('tr-TR')}`}
+                    <Tooltip
+                        formatter={(value: any) => `₺${value?.toLocaleString('tr-TR')}`}
                     />
                     <Legend />
                 </PieChart>

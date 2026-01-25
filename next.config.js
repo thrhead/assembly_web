@@ -19,6 +19,19 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 
 const nextConfig = {
     serverExternalPackages: ['@prisma/client', 'bcryptjs'],
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'ui-avatars.com',
+                pathname: '/api/**',
+            },
+            {
+                protocol: 'https',
+                hostname: 'res.cloudinary.com',
+            }
+        ],
+    },
     async headers() {
         return [
             {
@@ -46,7 +59,7 @@ const nextConfig = {
                     },
                     {
                         key: 'Content-Security-Policy',
-                        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' blob: data: https://res.cloudinary.com https://{s}.tile.openstreetmap.org https://unpkg.com; font-src 'self' data:; connect-src 'self' https://*.pusher.com wss://*.pusher.com https://va.vercel-scripts.com; frame-ancestors 'none';"
+                        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' blob: data: https://res.cloudinary.com https://ui-avatars.com https://{s}.tile.openstreetmap.org https://unpkg.com; font-src 'self' data:; connect-src 'self' https://*.pusher.com wss://*.pusher.com https://va.vercel-scripts.com; frame-ancestors 'none';"
                     }
                 ]
             }

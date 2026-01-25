@@ -16,7 +16,7 @@ vi.mock('next/navigation', () => ({
 describe('ReportFilters', () => {
     it('should render date picker and job selection', () => {
         render(<ReportFilters jobs={[]} categories={[]} onFilterChange={vi.fn()} />)
-        expect(screen.getByText(/Tarih Aralığı/i)).toBeInTheDocument() 
+        expect(screen.getByText(/Tüm Zamanlar/i)).toBeInTheDocument()
         expect(screen.getByText(/Tüm Montajlar/i)).toBeInTheDocument()
     })
 })

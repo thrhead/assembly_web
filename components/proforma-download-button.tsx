@@ -20,6 +20,7 @@ export function ProformaDownloadButton({ job }: ProformaDownloadButtonProps) {
             const proformaData = {
                 id: job.id,
                 title: job.title,
+                currency: 'TRY',
                 customer: {
                     company: job.customer.company,
                     address: job.customer.address,
