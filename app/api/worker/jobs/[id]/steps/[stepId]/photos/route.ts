@@ -21,10 +21,45 @@ export async function POST(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const formData = await req.formData()
-        const file = formData.get('photo') as File
-        const subStepId = formData.get('subStepId') as string | null
+        const contentType = req.headers.get('content-type') || '';
 
+        let file: File | null = null;
+        let subStepId: string | null = null;
+        let buffer: Buffer;
+
+        if (contentType.includes('application/json')) {
+            console.log('[Photo Upload] Processing JSON/Base64 request');
+            const body = await req.json();
+            subStepId = body.subStepId || null;
+            const photoBase64 = body.photo;
+
+            if (!photoBase64) {
+                return NextResponse.json({ error: 'No photo data provided' }, { status: 400 });
+            }
+
+            buffer = Buffer.from(photoBase64, 'base64');
+            console.log('[Photo Upload] JSON Body parsed, buffer length:', buffer.length);
+        } else {
+            // Fallback to FormData (Legacy/Web)
+            console.log('[Photo Upload] Processing Multipart/FormData request');
+            const formData = await req.formData();
+            file = formData.get('photo') as File;
+            subStepId = formData.get('subStepId') as string | null;
+
+            if (!file) {
+                return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+            }
+
+            if (typeof file.arrayBuffer === 'function') {
+                const bytes = await file.arrayBuffer()
+                buffer = Buffer.from(bytes)
+            } else {
+                const bytes = await new Response(file).arrayBuffer()
+                buffer = Buffer.from(bytes)
+            }
+        }
+
+        /* 
         console.log('[Photo Upload] Received request:', {
             stepId: params.stepId,
             subStepId,
@@ -52,6 +87,7 @@ export async function POST(
             console.error('[Photo Upload] Error reading file buffer:', err)
             return NextResponse.json({ error: 'Failed to read file' }, { status: 500 })
         }
+        */
 
         // Hex Dump Debug
         const headerHex = buffer.subarray(0, 20).toString('hex');
@@ -70,7 +106,7 @@ export async function POST(
         const base64Data = buffer.toString('base64');
 
         // Sanitize MIME type
-        let fileType = file.type || 'image/jpeg';
+        let fileType = file?.type || 'image/jpeg';
         if (fileType === 'image' || !fileType.includes('/')) {
             fileType = 'image/jpeg';
             console.warn('[Photo Upload] Invalid MIME type detected, defaulting to image/jpeg');
