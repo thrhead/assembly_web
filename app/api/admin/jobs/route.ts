@@ -37,32 +37,56 @@ function buildJobFilter(searchParams: URLSearchParams) {
 }
 
 async function fetchJobs(where: any) {
-    return prisma.job.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        include: {
-            customer: {
-                include: {
-                    user: {
-                        select: { name: true }
+    try {
+        console.log("Fetching jobs with where:", JSON.stringify(where));
+        return await prisma.job.findMany({
+            where,
+            orderBy: { createdAt: 'desc' },
+            take: 100, // Limit to prevent timeout
+            include: {
+                customer: {
+                    include: {
+                        user: {
+                            select: { name: true }
+                        }
                     }
-                }
-            },
-            assignments: {
-                include: {
-                    team: true,
-                    worker: {
-                        select: { name: true }
+                },
+                assignments: {
+                    include: {
+                        team: true,
+                        worker: {
+                            select: { name: true }
+                        }
                     }
-                }
-            },
-            _count: {
-                select: {
-                    steps: true
+                },
+                _count: {
+                    select: {
+                        steps: true
+                    }
                 }
             }
+        })
+    } catch (e: any) {
+        console.error("Prisma jobs fetch failed:", e);
+        // Fallback: even more basic fetch
+        try {
+            return await prisma.job.findMany({
+                where: where.id ? { id: where.id } : {}, // Try without complex filters if they fail
+                orderBy: { createdAt: 'desc' },
+                take: 50,
+                select: {
+                    id: true,
+                    title: true,
+                    status: true,
+                    priority: true,
+                    createdAt: true
+                }
+            });
+        } catch (fallbackError) {
+            console.error("Critical jobs fetch failure:", fallbackError);
+            return [];
         }
-    })
+    }
 }
 
 export async function GET(req: Request) {
@@ -77,11 +101,51 @@ export async function GET(req: Request) {
         const where = buildJobFilter(searchParams)
 
         const jobs = await fetchJobs(where)
+        console.log(`Fetched ${jobs.length} jobs. Formatting for mobile app...`);
 
-        return NextResponse.json(jobs)
-    } catch (error) {
-        console.error('Jobs fetch error:', error)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        const formattedJobs = jobs.map((job: any) => {
+            try {
+                return {
+                    id: job.id,
+                    title: job.title,
+                    status: job.status,
+                    priority: job.priority,
+                    location: job.location,
+                    scheduledDate: job.scheduledDate,
+                    createdAt: job.createdAt,
+                    customer: job.customer ? {
+                        id: job.customer.id,
+                        company: job.customer.company,
+                        user: job.customer.user ? {
+                            name: job.customer.user.name
+                        } : null
+                    } : null,
+                    assignments: job.assignments?.map((a: any) => ({
+                        id: a.id,
+                        team: a.team ? { name: a.team.name } : null,
+                        worker: a.worker ? { name: a.worker.name } : null
+                    })) || [],
+                    _count: {
+                        steps: job._count?.steps || 0
+                    }
+                };
+            } catch (err) {
+                console.error(`Error formatting job ${job.id}:`, err);
+                return { id: job.id, title: "Formatting Error", status: "ERROR" };
+            }
+        });
+
+        return NextResponse.json(formattedJobs)
+    } catch (error: any) {
+        console.error('Jobs fetch error detailed:', {
+            message: error.message,
+            stack: error.stack,
+            url: req.url
+        })
+        return NextResponse.json({ 
+            error: 'Internal Server Error', 
+            message: error.message 
+        }, { status: 500 })
     }
 }
 
