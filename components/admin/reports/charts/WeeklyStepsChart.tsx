@@ -59,7 +59,14 @@ export default function WeeklyStepsChart({ data, categories }: WeeklyStepsChartP
                 <CardContent>
                     <div className="h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <ComposedChart data={chartData} onClick={(e) => e && handleBarClick(e.activePayload?.[0]?.payload)}>
+                            <ComposedChart 
+                                data={chartData} 
+                                onClick={(e: any) => {
+                                    if (e && e.activePayload && e.activePayload.length > 0) {
+                                        handleBarClick(e.activePayload[0].payload);
+                                    }
+                                }}
+                            >
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                                 <XAxis 
                                     dataKey="displayDate" 
