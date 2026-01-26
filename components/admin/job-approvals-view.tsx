@@ -116,7 +116,7 @@ export function JobApprovalsView({ job }: JobApprovalsViewProps) {
                         Onay Bekleyen Alt İş Emirleri
                     </h3>
                     <div className="grid gap-4 md:grid-cols-2">
-                        {pendingSubSteps.map((ss) => (
+                        {pendingSubSteps.map((ss: any) => (
                             <ApprovalCard
                                 key={ss.id}
                                 item={ss}
@@ -138,7 +138,7 @@ export function JobApprovalsView({ job }: JobApprovalsViewProps) {
                         Onay Bekleyen Ana Adımlar
                     </h3>
                     <div className="grid gap-4 md:grid-cols-2">
-                        {pendingSteps.map((step) => (
+                        {pendingSteps.map((step: any) => (
                             <ApprovalCard
                                 key={step.id}
                                 item={step}
