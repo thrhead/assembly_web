@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { sendJobNotification } from '@/lib/notification-helper'
+import { EventBus } from '@/lib/event-bus'
 
 const jobSchema = z.object({
   title: z.string().min(3, 'İş başlığı en az 3 karakter olmalıdır'),
@@ -214,3 +215,27 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
     throw new Error('İş güncellenirken bir hata oluştu')
   }
 }
+
+export async function deleteJobAction(id: string) {
+  const session = await auth()
+
+  if (!session || session.user.role !== 'ADMIN') {
+    throw new Error('Yetkisiz işlem: Sadece yöneticiler iş silebilir.')
+  }
+
+  try {
+    await prisma.job.delete({
+      where: { id }
+    })
+
+    // Yan etkileri tetikle
+    await EventBus.emit('job.deleted', { id })
+
+    revalidatePath('/admin/jobs')
+    return { success: true }
+  } catch (error) {
+    console.error('Job deletion error:', error)
+    throw new Error('İş silinirken bir hata oluştu')
+  }
+}
+

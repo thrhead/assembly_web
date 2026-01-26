@@ -35,7 +35,11 @@ export async function POST(
         }
       },
       include: {
-        steps: true,
+        steps: {
+          include: {
+            subSteps: true
+          }
+        },
         creator: true,
         customer: true,
         assignments: {
@@ -51,10 +55,15 @@ export async function POST(
       return NextResponse.json({ error: 'Job not found or access denied' }, { status: 404 })
     }
 
-    const allStepsCompleted = job.steps.every(step => step.isCompleted)
-    if (!allStepsCompleted) {
+    const allStepsAndSubStepsCompleted = job.steps.every(step => {
+      const stepDone = step.isCompleted;
+      const subStepsDone = step.subSteps.length === 0 || step.subSteps.every(ss => ss.isCompleted);
+      return stepDone && subStepsDone;
+    })
+
+    if (!allStepsAndSubStepsCompleted) {
       return NextResponse.json({
-        error: 'Tüm adımlar tamamlanmadan iş tamamlanamaz'
+        error: 'bu montajı tamamlayarak kapatmak için tüm alt iş emirlerini tamamlamanız gerekiyor'
       }, { status: 400 })
     }
 
