@@ -42,7 +42,98 @@ export type CreateJobState = {
   errors?: Record<string, string[]>
 }
 
-// ... existing code ...
+export async function createJobAction(prevState: CreateJobState, formData: FormData): Promise<CreateJobState> {
+  const session = await auth()
+
+  if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
+    return { error: 'Yetkisiz işlem' }
+  }
+
+  const rawData = {
+    title: formData.get('title'),
+    description: formData.get('description'),
+    customerId: formData.get('customerId'),
+    teamId: formData.get('teamId'),
+    workerId: formData.get('workerId'),
+    priority: formData.get('priority'),
+    location: formData.get('location'),
+    scheduledDate: formData.get('scheduledDate'),
+    scheduledEndDate: formData.get('scheduledEndDate'),
+    steps: JSON.parse(formData.get('steps') as string || '[]')
+  }
+
+  const validated = jobSchema.safeParse(rawData)
+
+  if (!validated.success) {
+    return {
+      errors: validated.error.flatten().fieldErrors as any
+    }
+  }
+
+  try {
+    const job = await prisma.$transaction(async (tx) => {
+      // 1. Create Job
+      const newJob = await tx.job.create({
+        data: {
+          title: validated.data.title,
+          description: validated.data.description,
+          customerId: validated.data.customerId,
+          priority: validated.data.priority,
+          location: validated.data.location,
+          scheduledDate: validated.data.scheduledDate ? new Date(validated.data.scheduledDate) : null,
+          scheduledEndDate: validated.data.scheduledEndDate ? new Date(validated.data.scheduledEndDate) : null,
+          creatorId: session.user.id,
+        }
+      })
+
+      // 2. Create Assignment
+      if ((validated.data.teamId && validated.data.teamId !== 'none') || (validated.data.workerId && validated.data.workerId !== 'none')) {
+        await tx.jobAssignment.create({
+          data: {
+            jobId: newJob.id,
+            teamId: validated.data.teamId === 'none' ? undefined : validated.data.teamId,
+            workerId: validated.data.workerId === 'none' ? undefined : validated.data.workerId
+          }
+        })
+      }
+
+      // 3. Create Steps & Substeps
+      if (validated.data.steps && validated.data.steps.length > 0) {
+        for (let i = 0; i < validated.data.steps.length; i++) {
+          const step = validated.data.steps[i]
+          const newStep = await tx.jobStep.create({
+            data: {
+              jobId: newJob.id,
+              title: step.title,
+              description: step.description,
+              order: i + 1
+            }
+          })
+
+          if (step.subSteps && step.subSteps.length > 0) {
+            await tx.jobSubStep.createMany({
+              data: step.subSteps.map((ss, index) => ({
+                stepId: newStep.id,
+                title: ss.title,
+                order: index + 1
+              }))
+            })
+          }
+        }
+      }
+
+      return newJob
+    })
+
+    await EventBus.emit('job.created', job);
+    
+    revalidatePath('/admin/jobs')
+    return { success: true }
+  } catch (error) {
+    console.error('Job creation error:', error)
+    return { error: 'İş oluşturulurken bir hata oluştu' }
+  }
+}
 
 export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
   const session = await auth()

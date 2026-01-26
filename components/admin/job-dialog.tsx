@@ -241,10 +241,20 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
         })
         toast.success('İş başarıyla güncellendi')
       } else {
-        await createJobAction({
-          ...data,
-          steps: validSteps.length > 0 ? validSteps : null
+        const formData = new FormData()
+        Object.entries(data).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formData.append(key, value as string)
+          }
         })
+        formData.append('steps', JSON.stringify(validSteps))
+        
+        const result = await createJobAction({ success: false }, formData)
+        
+        if (result.error) {
+          throw new Error(result.error)
+        }
+        
         toast.success('İş başarıyla oluşturuldu')
       }
 

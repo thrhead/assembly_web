@@ -9,7 +9,7 @@ import { useState } from 'react'
 interface DeleteJobButtonProps {
     jobId: string
     jobTitle: string
-    variant?: "ghost" | "outline" | "destructive" | "default" | "secondary" | "link"
+    variant?: "ghost" | "outline" | "destructive" | "default" | "link"
     size?: "default" | "sm" | "lg" | "icon"
     showText?: boolean
 }
