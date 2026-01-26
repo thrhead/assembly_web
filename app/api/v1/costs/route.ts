@@ -31,7 +31,7 @@ export async function GET(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const costs = await prisma.extraCost.findMany({
+        const costs = await prisma.costTracking.findMany({
             orderBy: { date: 'desc' },
             include: { job: { select: { title: true } } }
         })
