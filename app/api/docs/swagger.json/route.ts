@@ -1,8 +1,7 @@
-
 import { NextResponse } from 'next/server'
-import { generateOpenApiDocs } from '@/lib/openapi'
+import { getOpenApiSpec } from '@/lib/openapi'
 
 export async function GET() {
-    const spec = generateOpenApiDocs()
+    const spec = getOpenApiSpec()
     return NextResponse.json(spec)
 }
