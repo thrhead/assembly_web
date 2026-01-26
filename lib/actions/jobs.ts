@@ -28,7 +28,11 @@ const jobSchema = z.object({
 })
 
 const updateJobSchema = jobSchema.extend({
-  id: z.string()
+  id: z.string(),
+  status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
+  acceptanceStatus: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']).optional(),
+  startedAt: z.string().optional(),
+  completedDate: z.string().optional(),
 })
 
 export type CreateJobState = {
@@ -37,110 +41,7 @@ export type CreateJobState = {
   errors?: Record<string, string[]>
 }
 
-export async function createJob(prevState: CreateJobState, formData: FormData): Promise<CreateJobState> {
-  // This is a placeholder for form action if needed, but we use createJobAction directly
-  return { error: 'Not implemented for direct form action' }
-}
-
-// Redefining to be called directly from Client Component (RHF submit handler)
-export async function createJobAction(data: z.infer<typeof jobSchema>) {
-  const session = await auth()
-
-  if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
-    throw new Error('Yetkisiz işlem')
-  }
-
-  const validated = jobSchema.safeParse(data)
-
-  if (!validated.success) {
-    throw new Error('Geçersiz veri: ' + JSON.stringify(validated.error.flatten()))
-  }
-
-  const {
-    title,
-    description,
-    customerId,
-    teamId,
-    priority,
-    location,
-    scheduledDate,
-    scheduledEndDate,
-    steps,
-    workerId
-  } = validated.data
-
-  try {
-    const job = await prisma.$transaction(async (tx) => {
-      const createdJob = await tx.job.create({
-        data: {
-          title,
-          description,
-          customerId,
-          creatorId: session.user.id,
-          priority,
-          location,
-          status: 'PENDING',
-          scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
-          scheduledEndDate: scheduledEndDate ? new Date(scheduledEndDate) : null,
-        }
-      })
-
-      // Assign Team or Worker
-      if ((teamId && teamId !== 'none') || (workerId && workerId !== 'none')) {
-        await tx.jobAssignment.create({
-          data: {
-            jobId: createdJob.id,
-            teamId: teamId === 'none' ? undefined : teamId,
-            workerId: workerId === 'none' ? undefined : workerId
-          }
-        })
-      }
-
-      // Create Steps
-      if (steps && steps.length > 0) {
-        for (let i = 0; i < steps.length; i++) {
-          const stepData = steps[i]
-          const step = await tx.jobStep.create({
-            data: {
-              jobId: createdJob.id,
-              title: stepData.title,
-              description: stepData.description,
-              order: i + 1,
-            }
-          })
-
-          if (stepData.subSteps && stepData.subSteps.length > 0) {
-            await tx.jobSubStep.createMany({
-              data: stepData.subSteps.map((sub, j) => ({
-                stepId: step.id,
-                title: sub.title,
-                order: j + 1
-              }))
-            })
-          }
-        }
-      }
-      return createdJob
-    })
-
-    // Send Notification after transaction commits
-    if ((teamId && teamId !== 'none') || (workerId && workerId !== 'none')) {
-      await sendJobNotification(
-        job.id,
-        'Yeni İş Atandı',
-        `"${job.title}" başlıklı yeni bir iş size atandı.`,
-        'INFO',
-        `/worker/jobs/${job.id}`
-      );
-    }
-
-    revalidatePath('/admin/jobs')
-    return { success: true }
-  } catch (error) {
-    console.error('Job creation error:', error)
-    throw new Error('İş oluşturulurken bir hata oluştu')
-  }
-}
+// ... existing code ...
 
 export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
   const session = await auth()
@@ -163,9 +64,13 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
     teamId,
     workerId,
     priority,
+    status,
+    acceptanceStatus,
     location,
     scheduledDate,
     scheduledEndDate,
+    startedAt,
+    completedDate,
     steps
   } = validated.data
 
@@ -179,9 +84,13 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
           description,
           customerId,
           priority,
+          status: status || undefined,
+          acceptanceStatus: acceptanceStatus || undefined,
           location,
           scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
           scheduledEndDate: scheduledEndDate ? new Date(scheduledEndDate) : null,
+          startedAt: startedAt ? new Date(startedAt) : null,
+          completedDate: completedDate ? new Date(completedDate) : null,
         }
       })
 
