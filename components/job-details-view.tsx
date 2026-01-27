@@ -129,7 +129,7 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex items-start gap-3">
-                            <Briefcase className="h-5 w-5 text-gray-400 mt-0.5" />
+                            <Briefcase className="h-5 w-5 text-gray-500 mt-0.5" />
                             <div>
                                 <p className="font-medium">Açıklama</p>
                                 <p className="text-sm text-gray-600">{job.description || 'Açıklama yok'}</p>
@@ -137,7 +137,7 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <MapPin className="h-5 w-5 text-gray-400" />
+                            <MapPin className="h-5 w-5 text-gray-500" />
                             <div>
                                 <p className="font-medium">Konum</p>
                                 <p className="text-sm text-gray-600">{job.location || 'Belirtilmemiş'}</p>
@@ -145,7 +145,7 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <Calendar className="h-5 w-5 text-gray-400" />
+                            <Calendar className="h-5 w-5 text-gray-500" />
                             <div>
                                 <p className="font-medium">Oluşturulma Tarihi</p>
                                 <p className="text-sm text-gray-600">
@@ -164,7 +164,7 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                         <div>
                             <h3 className="text-sm font-medium text-gray-500 mb-2">Müşteri</h3>
                             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                                <User className="h-8 w-8 text-gray-400" />
+                                <User className="h-8 w-8 text-gray-500" />
                                 <div>
                                     <p className="font-medium">{job.customer.company}</p>
                                     <p className="text-sm text-gray-500">{job.customer.user.name}</p>
@@ -227,7 +227,7 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                                                     </div>
                                                 ) : (
                                                     <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center">
-                                                        <Circle className="h-4 w-4 text-gray-400" />
+                                                        <Circle className="h-4 w-4 text-gray-500" />
                                                     </div>
                                                 )}
                                             </div>
@@ -275,9 +275,9 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                                                                 className="p-1 hover:bg-gray-100 rounded"
                                                             >
                                                                 {isExpanded ? (
-                                                                    <ChevronUp className="h-4 w-4 text-gray-400" />
+                                                                    <ChevronUp className="h-4 w-4 text-gray-500" />
                                                                 ) : (
-                                                                    <ChevronDown className="h-4 w-4 text-gray-400" />
+                                                                    <ChevronDown className="h-4 w-4 text-gray-500" />
                                                                 )}
                                                             </button>
                                                         )}
@@ -349,7 +349,7 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                                                                     <img
                                                                         src={photo.url}
                                                                         alt="İş fotoğrafı"
-                                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                                                        className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
                                                                     />
                                                                 </div>
                                                                 <div className="mt-1 text-xs text-gray-500">

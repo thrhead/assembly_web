@@ -35,8 +35,14 @@ export async function GET(req: Request) {
             completedJobs,
             pendingJobs,
         });
-    } catch (error) {
-        console.error("Admin stats fetch error:", error);
-        return new NextResponse("Internal Error", { status: 500 });
+    } catch (error: any) {
+        console.error("Admin stats fetch error:", error.message);
+        return NextResponse.json({
+            totalJobs: 0,
+            activeTeams: 0,
+            completedJobs: 0,
+            pendingJobs: 0,
+            error: "Data fetch failed"
+        }, { status: 200 });
     }
 }

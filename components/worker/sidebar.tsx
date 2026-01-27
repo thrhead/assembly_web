@@ -49,7 +49,7 @@ export function WorkerSidebar({ isOpen, onClose }: WorkerSidebarProps) {
       >
         <div className="h-16 flex items-center justify-between px-6 border-b lg:hidden">
           <span className="font-bold text-lg">Menü</span>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Menüyü Kapat">
             <XIcon className="h-5 w-5" />
           </Button>
         </div>
@@ -71,9 +71,8 @@ export function WorkerSidebar({ isOpen, onClose }: WorkerSidebarProps) {
                   )}
                   onClick={onClose}
                 >
-                  <item.icon className={cn("h-5 w-5", isActive ? "text-indigo-600" : "text-gray-400")} />
-                  {item.title}
-                </Link>
+                                        <item.icon className={cn("h-5 w-5", isActive ? "text-indigo-600" : "text-gray-500")} />
+                                        {item.title}                </Link>
               )
             })}
           </nav>

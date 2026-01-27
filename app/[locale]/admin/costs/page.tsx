@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
+import Image from 'next/image'
 import {
     Table,
     TableBody,
@@ -328,7 +329,13 @@ function CostsTable() {
                     </DialogHeader>
                     {selectedReceipt && (
                         <div className="relative h-[60vh] w-full rounded-md overflow-hidden bg-black/5 flex items-center justify-center">
-                            <img src={selectedReceipt} alt="Receipt" className="max-h-full max-w-full object-contain" />
+                            <Image 
+                                src={selectedReceipt} 
+                                alt="Receipt" 
+                                fill 
+                                className="object-contain" 
+                                unoptimized 
+                            />
                         </div>
                     )}
                 </DialogContent>
