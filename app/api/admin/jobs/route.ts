@@ -86,32 +86,47 @@ export async function GET(req: Request) {
         const where = buildJobFilter(searchParams)
 
         const jobs = await fetchJobs(where)
+        console.log(`DEBUG: Processing ${jobs.length} jobs for formatting`);
 
-        const formattedJobs = jobs.map((job: any) => ({
-            id: job.id,
-            title: job.title || '',
-            status: job.status || 'PENDING',
-            priority: job.priority || 'MEDIUM',
-            location: job.location || '',
-            scheduledDate: job.scheduledDate ? new Date(job.scheduledDate).toISOString() : null,
-            createdAt: job.createdAt ? new Date(job.createdAt).toISOString() : new Date().toISOString(),
-            customer: job.customer ? {
-                id: job.customer.id,
-                company: job.customer.company || '',
-                user: job.customer.user ? { name: job.customer.user.name || '' } : null
-            } : null,
-            assignments: (job.assignments || []).map((a: any) => ({
-                id: a.id,
-                team: a.team ? { name: a.team.name || '' } : null,
-                worker: a.worker ? { name: a.worker.name || '' } : null
-            })),
-            _count: { steps: job._count?.steps || 0 }
-        }));
+        const formattedJobs = jobs.map((job: any) => {
+            try {
+                return {
+                    id: job.id,
+                    title: job.title || '',
+                    status: job.status || 'PENDING',
+                    priority: job.priority || 'MEDIUM',
+                    location: job.location || '',
+                    scheduledDate: job.scheduledDate ? new Date(job.scheduledDate).toISOString() : null,
+                    createdAt: job.createdAt ? new Date(job.createdAt).toISOString() : new Date().toISOString(),
+                    customer: job.customer ? {
+                        id: job.customer.id,
+                        company: job.customer.company || '',
+                        user: job.customer.user ? { name: job.customer.user.name || '' } : null
+                    } : null,
+                    assignments: (job.assignments || []).map((a: any) => ({
+                        id: a.id,
+                        team: a.team ? { name: a.team.name || '' } : null,
+                        worker: a.worker ? { name: a.worker.name || '' } : null
+                    })),
+                    _count: { steps: job._count?.steps || 0 }
+                };
+            } catch (mapError: any) {
+                console.error(`DEBUG: Failed to format job ${job.id}:`, mapError.message);
+                return {
+                    id: job.id,
+                    title: job.title || 'Format Error',
+                    status: job.status || 'ERROR',
+                    priority: 'MEDIUM',
+                    _count: { steps: 0 }
+                };
+            }
+        });
 
+        console.log("DEBUG: Formatting complete, returning response");
         return NextResponse.json(JSON.parse(JSON.stringify(formattedJobs)))
     } catch (error: any) {
-        console.error('CRITICAL: API GET Crash:', error.message);
-        return NextResponse.json([], { status: 200 }); // Return empty list instead of 500 for better UI experience
+        console.error('CRITICAL: API GET Crash:', error.message, error.stack);
+        return NextResponse.json([], { status: 200 }); 
     }
 }
 

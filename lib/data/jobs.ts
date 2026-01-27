@@ -20,216 +20,229 @@ export type GetJobsParams = {
 };
 
 export async function getJobs({ page = 1, limit = 20, filter }: GetJobsParams = {}) {
-  const skip = (page - 1) * limit;
+  try {
+    const skip = (page - 1) * limit;
 
-  const where: Prisma.JobWhereInput = {};
+    const where: Prisma.JobWhereInput = {};
 
-  if (filter?.search) {
-    where.OR = [
-      { title: { contains: filter.search, mode: "insensitive" } },
-      { customer: { company: { contains: filter.search, mode: "insensitive" } } },
-      { customer: { user: { name: { contains: filter.search, mode: "insensitive" } } } }
-    ];
-  }
-
-  // Handle status (single or multiple)
-  if (filter?.status) {
-    if (Array.isArray(filter.status) && filter.status.length > 0) {
-      where.status = { in: filter.status };
-    } else if (typeof filter.status === 'string' && filter.status !== 'ALL') {
-      where.status = filter.status;
+    if (filter?.search) {
+      where.OR = [
+        { title: { contains: filter.search, mode: "insensitive" } },
+        { customer: { company: { contains: filter.search, mode: "insensitive" } } },
+        { customer: { user: { name: { contains: filter.search, mode: "insensitive" } } } }
+      ];
     }
-  }
 
-  // Handle teams
-  if (filter?.teams && filter.teams.length > 0) {
-    where.assignments = {
-      some: {
-        teamId: { in: filter.teams }
+    // Handle status (single or multiple)
+    if (filter?.status) {
+      if (Array.isArray(filter.status) && filter.status.length > 0) {
+        where.status = { in: filter.status };
+      } else if (typeof filter.status === 'string' && filter.status !== 'ALL') {
+        where.status = filter.status;
       }
+    }
+
+    // Handle teams
+    if (filter?.teams && filter.teams.length > 0) {
+      where.assignments = {
+        some: {
+          teamId: { in: filter.teams }
+        }
+      };
+    }
+
+    if (filter?.priority && filter.priority !== 'ALL') {
+      where.priority = filter.priority;
+    }
+
+    if (filter?.customerId) {
+      where.customerId = filter.customerId;
+    }
+
+    if (filter?.dateRange) {
+      where.scheduledDate = {
+        gte: filter.dateRange.start,
+        lte: filter.dateRange.end
+      };
+    }
+
+    const [jobs, total] = await Promise.all([
+      prisma.job.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          customer: {
+            include: {
+              user: {
+                select: { name: true }
+              }
+            }
+          },
+          assignments: {
+            include: {
+              team: {
+                include: {
+                  lead: { select: { id: true, name: true } },
+                  members: {
+                    include: {
+                      user: { select: { id: true, name: true } }
+                    }
+                  }
+                }
+              },
+              worker: { select: { id: true, name: true } }
+            }
+          },
+          steps: {
+            select: {
+              id: true,
+              isCompleted: true,
+              subSteps: {
+                select: { approvalStatus: true }
+              }
+            }
+          },
+          costs: {
+            select: {
+              id: true,
+              amount: true,
+              status: true
+            }
+          },
+          // Check if any step has started work
+          _count: {
+            select: {
+              steps: {
+                where: {
+                  startedAt: { not: null }
+                }
+              }
+            }
+          }
+        }
+      }),
+      prisma.job.count({ where })
+    ]);
+
+    return {
+      jobs,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  } catch (error: any) {
+    console.error("ERROR: getJobs failed:", error.message);
+    return {
+      jobs: [],
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0 }
     };
   }
+}
 
-  if (filter?.priority && filter.priority !== 'ALL') {
-    where.priority = filter.priority;
+export async function getJobStats() {
+  try {
+    const total = await prisma.job.count();
+    const pending = await prisma.job.count({ where: { status: 'PENDING' } });
+    const inProgress = await prisma.job.count({ where: { status: 'IN_PROGRESS' } });
+    const completed = await prisma.job.count({ where: { status: 'COMPLETED' } });
+
+    return { total, pending, inProgress, completed };
+  } catch (error: any) {
+    console.error("ERROR: getJobStats failed:", error.message);
+    return { total: 0, pending: 0, inProgress: 0, completed: 0 };
   }
+}
 
-  if (filter?.customerId) {
-    where.customerId = filter.customerId;
-  }
-
-  if (filter?.dateRange) {
-    where.scheduledDate = {
-      gte: filter.dateRange.start,
-      lte: filter.dateRange.end
-    };
-  }
-
-  const [jobs, total] = await Promise.all([
-    prisma.job.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
+export async function getJob(id: string) {
+  try {
+    return await prisma.job.findUnique({
+      where: { id },
       include: {
         customer: {
           include: {
-            user: {
-              select: { name: true }
-            }
+            user: true
           }
         },
         assignments: {
           include: {
             team: {
               include: {
-                lead: { select: { id: true, name: true } },
                 members: {
                   include: {
-                    user: { select: { id: true, name: true } }
+                    user: true
                   }
                 }
               }
             },
-            worker: { select: { id: true, name: true } }
+            worker: true
+          }
+        },
+        approvals: {
+          where: {
+            status: 'PENDING'
+          },
+          include: {
+            requester: {
+              select: {
+                name: true,
+                email: true
+              }
+            }
           }
         },
         steps: {
-          select: {
-            id: true,
-            isCompleted: true,
+          orderBy: {
+            order: 'asc'
+          },
+          include: {
+            completedBy: {
+              select: {
+                name: true
+              }
+            },
             subSteps: {
-              select: { approvalStatus: true }
+              orderBy: {
+                order: 'asc'
+              },
+              include: {
+                photos: true
+              }
+            },
+            photos: {
+              orderBy: {
+                uploadedAt: 'desc'
+              },
+              include: {
+                uploadedBy: {
+                  select: {
+                    name: true
+                  }
+                }
+              }
             }
           }
         },
         costs: {
-          select: {
-            id: true,
-            amount: true,
-            status: true
-          }
-        },
-        // Check if any step has started work
-        _count: {
-          select: {
-            steps: {
-              where: {
-                startedAt: { not: null }
+          orderBy: {
+            date: 'desc'
+          },
+          include: {
+            createdBy: {
+              select: {
+                name: true
               }
             }
           }
         }
       }
-    }),
-    prisma.job.count({ where })
-  ]);
-
-  return {
-    jobs,
-    meta: {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    },
-  };
-}
-
-export async function getJobStats() {
-  const total = await prisma.job.count();
-  const pending = await prisma.job.count({ where: { status: 'PENDING' } });
-  const inProgress = await prisma.job.count({ where: { status: 'IN_PROGRESS' } });
-  const completed = await prisma.job.count({ where: { status: 'COMPLETED' } });
-
-  // Pending approvals (jobs with pending costs or pending sub-steps)
-  // Note: This is a simplified count, a precise one would require a complex join or raw query
-  // similar to how `jobs` query does it but for counting.
-  // For now returning basic status stats.
-
-  return { total, pending, inProgress, completed };
-}
-
-export async function getJob(id: string) {
-  return await prisma.job.findUnique({
-    where: { id },
-    include: {
-      customer: {
-        include: {
-          user: true
-        }
-      },
-      assignments: {
-        include: {
-          team: {
-            include: {
-              members: {
-                include: {
-                  user: true
-                }
-              }
-            }
-          },
-          worker: true
-        }
-      },
-      approvals: {
-        where: {
-          status: 'PENDING'
-        },
-        include: {
-          requester: {
-            select: {
-              name: true,
-              email: true
-            }
-          }
-        }
-      },
-      steps: {
-        orderBy: {
-          order: 'asc'
-        },
-        include: {
-          completedBy: {
-            select: {
-              name: true
-            }
-          },
-          subSteps: {
-            orderBy: {
-              order: 'asc'
-            },
-            include: {
-              photos: true
-            }
-          },
-          photos: {
-            orderBy: {
-              uploadedAt: 'desc'
-            },
-            include: {
-              uploadedBy: {
-                select: {
-                  name: true
-                }
-              }
-            }
-          }
-        }
-      },
-      costs: {
-        orderBy: {
-          date: 'desc'
-        },
-        include: {
-          createdBy: {
-            select: {
-              name: true
-            }
-          }
-        }
-      }
-    }
-  });
+    });
+  } catch (error: any) {
+    console.error(`ERROR: getJob ${id} failed:`, error.message);
+    return null;
+  }
 }
