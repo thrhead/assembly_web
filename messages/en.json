@@ -7,7 +7,11 @@
     "loading": "Loading...",
     "search": "Search...",
     "error": "An error occurred",
-    "success": "Operation successful"
+    "success": "Operation successful",
+    "status": "Status",
+    "priority": "Priority",
+    "date": "Date",
+    "actions": "Actions"
   },
   "Navigation": {
     "dashboard": "Dashboard",
@@ -15,7 +19,8 @@
     "teams": "Teams",
     "customers": "Customers",
     "costs": "Costs",
-    "logout": "Logout"
+    "logout": "Logout",
+    "reports": "Reports"
   },
   "Dashboard": {
     "welcome": "Welcome Back",
@@ -30,38 +35,97 @@
     "description": "Easily track the work of assembly and service teams working outside the factory. Cost control, team management, and customer notifications on a single platform.",
     "loginButton": "Login",
     "features": {
-        "tracking": {
-            "title": "Job Tracking",
-            "desc": "Track and control assembly processes step by step"
+      "tracking": {
+        "title": "Job Tracking",
+        "desc": "Track and control assembly processes step by step"
+      },
+      "teams": {
+        "title": "Team Management",
+        "desc": "Manage your teams, assign tasks, and monitor progress"
+      },
+      "reporting": {
+        "title": "Reporting",
+        "desc": "Perform cost control with detailed reports and charts"
+      }
+    }
+  },
+  "CustomerDashboard": {
+    "title": "Dashboard",
+    "subtitle": "Summary and status of your jobs",
+    "stats": {
+      "totalJobs": "Total Jobs",
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "completed": "Completed"
+    },
+    "charts": {
+      "distribution": "Job Status Distribution"
+    },
+    "recentJobs": {
+      "title": "Recent Jobs",
+      "viewAll": "View All",
+      "noJobs": "No jobs found yet",
+      "progress": "Progress"
+    }
+  },
+  "Manager": {
+    "dashboard": {
+      "title": "Manager Dashboard",
+      "subtitle": "You can monitor the operational status here.",
+      "stats": {
+        "totalJobs": "Total Jobs",
+        "activeTeams": "Active Teams",
+        "completed": "Completed",
+        "pendingApproval": "Pending Approval",
+        "allTime": "All time",
+        "onField": "On field",
+        "thisMonth": "This month",
+        "needsReview": "Needs review"
+      },
+      "recentJobs": {
+        "title": "Recent Jobs",
+        "noJobs": "No jobs found yet.",
+        "createdNew": "created a new job"
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "newJob": {
+          "title": "Create New Job",
+          "desc": "Open a new service record for a customer"
         },
-        "teams": {
-            "title": "Team Management",
-            "desc": "Manage your teams, assign tasks, and monitor progress"
-            },
-            "reporting": {
-              "title": "Reporting",
-              "desc": "Perform cost control with detailed reports and charts"
-            }
-          },
-          "CustomerDashboard": {
-            "title": "Dashboard",
-            "subtitle": "Summary and status of your jobs",
-            "stats": {
-              "totalJobs": "Total Jobs",
-              "pending": "Pending",
-              "inProgress": "In Progress",
-              "completed": "Completed"
-            },
-            "charts": {
-              "distribution": "Job Status Distribution"
-            },
-            "recentJobs": {
-              "title": "Recent Jobs",
-              "viewAll": "View All",
-              "noJobs": "No jobs found yet",
-              "progress": "Progress"
-            }
-          }
+        "reports": {
+          "title": "Reports",
+          "desc": "Review detailed job and cost reports"
         }
-        
+      }
+    },
+    "jobs": {
+      "title": "Jobs",
+      "subtitle": "Manage assembly and service jobs.",
+      "searchPlaceholder": "Search job, customer or company...",
+      "table": {
+        "title": "Job Title",
+        "customer": "Customer",
+        "team": "Assigned Team",
+        "unassigned": "Unassigned",
+        "noRecords": "No jobs found."
+      }
+    },
+    "reports": {
+      "title": "Reports",
+      "subtitle": "Job and performance analysis.",
+      "charts": {
+        "statusDistribution": "Job Status Distribution",
+        "recentCompletion": "Jobs Completed Last 7 Days",
+        "topTeams": "Top Teams (Completed Jobs)"
+      }
+    },
+    "status": {
+      "PENDING": "Pending",
+      "IN_PROGRESS": "In Progress",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled",
+      "ON_HOLD": "On Hold"
+    }
+  }
 }

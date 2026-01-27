@@ -6,9 +6,12 @@ import { JobStatusChart } from "@/components/charts/job-status-chart"
 import { TimelineChart } from "@/components/charts/timeline-chart"
 import { TeamPerformanceChart } from "@/components/charts/team-performance-chart"
 import { format, subDays, startOfDay, endOfDay } from "date-fns"
-import { tr } from "date-fns/locale"
+import { tr, enUS } from "date-fns/locale"
+import { getTranslations } from "next-intl/server"
 
-async function getReportsData() {
+async function getReportsData(locale: string) {
+    const dateLocale = locale === 'tr' ? tr : enUS
+    
     // 1. İş Durumu Dağılımı
     const statusCounts = await prisma.job.groupBy({
         by: ['status'],
@@ -27,7 +30,7 @@ async function getReportsData() {
         const date = subDays(new Date(), i)
         return {
             date: date,
-            label: format(date, 'd MMM', { locale: tr }),
+            label: format(date, 'd MMM', { locale: dateLocale }),
             count: 0
         }
     }).reverse()
@@ -80,26 +83,31 @@ async function getReportsData() {
     return { statusData, timelineData, teamData }
 }
 
-export default async function ReportsPage() {
+export default async function ReportsPage(props: {
+    params: Promise<{ locale: string }>
+}) {
+    const { locale } = await props.params
     const session = await auth()
+    
     if (!session || session.user.role !== "MANAGER") {
         redirect("/login")
     }
 
-    const { statusData, timelineData, teamData } = await getReportsData()
+    const t = await getTranslations("Manager.reports")
+    const { statusData, timelineData, teamData } = await getReportsData(locale)
 
     return (
         <div className="space-y-6 p-6">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">Raporlar</h1>
-                <p className="text-gray-500 mt-2">İş ve performans analizleri.</p>
+                <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
+                <p className="text-gray-500 mt-2">{t('subtitle')}</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {/* İş Durumu Dağılımı */}
                 <Card className="col-span-1">
                     <CardHeader>
-                        <CardTitle>İş Durumu Dağılımı</CardTitle>
+                        <CardTitle>{t('charts.statusDistribution')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <JobStatusChart data={statusData} />
@@ -109,7 +117,7 @@ export default async function ReportsPage() {
                 {/* Zaman İçindeki Tamamlanma */}
                 <Card className="col-span-1 lg:col-span-2">
                     <CardHeader>
-                        <CardTitle>Son 7 Gün Tamamlanan İşler</CardTitle>
+                        <CardTitle>{t('charts.recentCompletion')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <TimelineChart data={timelineData} />
@@ -119,7 +127,7 @@ export default async function ReportsPage() {
                 {/* Ekip Performansı */}
                 <Card className="col-span-1 lg:col-span-3">
                     <CardHeader>
-                        <CardTitle>En İyi Ekipler (Tamamlanan İş)</CardTitle>
+                        <CardTitle>{t('charts.topTeams')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <TeamPerformanceChart data={teamData} />

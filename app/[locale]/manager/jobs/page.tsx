@@ -14,15 +14,16 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { SearchIcon, CalendarIcon, MapPinIcon, BriefcaseIcon } from "lucide-react"
 import { format } from "date-fns"
-import { tr } from "date-fns/locale"
+import { tr, enUS } from "date-fns/locale"
+import { getTranslations } from "next-intl/server"
 
 async function getJobs(search?: string) {
     const where: any = {}
     if (search) {
         where.OR = [
-            { title: { contains: search } },
-            { customer: { company: { contains: search } } },
-            { customer: { user: { name: { contains: search } } } }
+            { title: { contains: search, mode: 'insensitive' } },
+            { customer: { company: { contains: search, mode: 'insensitive' } } },
+            { customer: { user: { name: { contains: search, mode: 'insensitive' } } } }
         ]
     }
 
@@ -65,23 +66,23 @@ const statusColors: Record<string, "default" | "secondary" | "destructive" | "ou
     CANCELLED: "destructive"
 }
 
-const statusLabels: Record<string, string> = {
-    PENDING: "Bekliyor",
-    IN_PROGRESS: "Devam Ediyor",
-    COMPLETED: "Tamamlandı",
-    CANCELLED: "İptal",
-    ON_HOLD: "Beklemede"
-}
-
 export default async function ManagerJobsPage(props: {
+    params: Promise<{ locale: string }>;
     searchParams: Promise<{ search?: string }>
 }) {
+    const { locale } = await props.params
     const searchParams = await props.searchParams
     const session = await auth()
+    
     if (!session || session.user.role !== "MANAGER") {
         redirect("/login")
     }
 
+    const t = await getTranslations("Manager.jobs")
+    const tStatus = await getTranslations("Manager.status")
+    const tCommon = await getTranslations("Common")
+    
+    const dateLocale = locale === 'tr' ? tr : enUS
     const jobs = await getJobs(searchParams.search)
 
     // Fetch data for JobDialog
@@ -111,8 +112,8 @@ export default async function ManagerJobsPage(props: {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">İşler</h1>
-                    <p className="text-gray-500 mt-2">Montaj ve servis işlerini yönetin.</p>
+                    <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
+                    <p className="text-gray-500 mt-2">{t('subtitle')}</p>
                 </div>
                 <JobDialog customers={customers} teams={teams} templates={templates} />
             </div>
@@ -124,7 +125,7 @@ export default async function ManagerJobsPage(props: {
                         <form>
                             <Input
                                 name="search"
-                                placeholder="İş, müşteri veya firma ara..."
+                                placeholder={t('searchPlaceholder')}
                                 className="pl-10"
                                 defaultValue={searchParams.search}
                             />
@@ -135,12 +136,12 @@ export default async function ManagerJobsPage(props: {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>İş Başlığı</TableHead>
-                            <TableHead>Müşteri</TableHead>
-                            <TableHead>Atanan Ekip</TableHead>
-                            <TableHead>Öncelik</TableHead>
-                            <TableHead>Durum</TableHead>
-                            <TableHead>Tarih</TableHead>
+                            <TableHead>{t('table.title')}</TableHead>
+                            <TableHead>{t('table.customer')}</TableHead>
+                            <TableHead>{t('table.team')}</TableHead>
+                            <TableHead>{tCommon('priority')}</TableHead>
+                            <TableHead>{tCommon('status')}</TableHead>
+                            <TableHead>{tCommon('date')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -174,7 +175,7 @@ export default async function ManagerJobsPage(props: {
                                             {job.assignments[0].team.name}
                                         </Badge>
                                     ) : (
-                                        <span className="text-sm text-gray-400 italic">Atanmamış</span>
+                                        <span className="text-sm text-gray-400 italic">{t('table.unassigned')}</span>
                                     )}
                                 </TableCell>
                                 <TableCell>
@@ -184,15 +185,15 @@ export default async function ManagerJobsPage(props: {
                                 </TableCell>
                                 <TableCell>
                                     <Badge variant={statusColors[job.status]}>
-                                        {statusLabels[job.status] || job.status}
+                                        {tStatus(job.status as any)}
                                     </Badge>
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-1 text-sm text-gray-600">
                                         <CalendarIcon className="h-3 w-3" />
                                         {job.scheduledDate
-                                            ? format(new Date(job.scheduledDate), 'd MMM', { locale: tr })
-                                            : format(new Date(job.createdAt), 'd MMM', { locale: tr })
+                                            ? format(new Date(job.scheduledDate), 'd MMM', { locale: dateLocale })
+                                            : format(new Date(job.createdAt), 'd MMM', { locale: dateLocale })
                                         }
                                     </div>
                                 </TableCell>
@@ -201,7 +202,7 @@ export default async function ManagerJobsPage(props: {
                         {jobs.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                                    Kayıtlı iş bulunamadı.
+                                    {t('table.noRecords')}
                                 </TableCell>
                             </TableRow>
                         )}

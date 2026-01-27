@@ -10,15 +10,23 @@ import {
     TrendingUpIcon
 } from 'lucide-react'
 import { formatDistanceToNow } from "date-fns"
-import { tr } from "date-fns/locale"
+import { tr, enUS } from "date-fns/locale"
 import { getManagerDashboardData } from "@/lib/data/manager-dashboard"
+import { getTranslations } from "next-intl/server"
 
-export default async function ManagerDashboard() {
+export default async function ManagerDashboard(props: {
+    params: Promise<{ locale: string }>
+}) {
+    const { locale } = await props.params
     const session = await auth()
 
     if (!session || session.user.role !== "MANAGER") {
         redirect("/login")
     }
+
+    const t = await getTranslations("Manager.dashboard")
+    const tCommon = await getTranslations("Common")
+    const dateLocale = locale === 'tr' ? tr : enUS
 
     const {
         totalJobs,
@@ -30,33 +38,33 @@ export default async function ManagerDashboard() {
 
     const stats = [
         {
-            title: 'Toplam İş',
+            title: t('stats.totalJobs'),
             value: totalJobs.toString(),
-            change: 'Tüm zamanlar',
+            change: t('stats.allTime'),
             icon: BriefcaseIcon,
             color: 'text-blue-600',
             bg: 'bg-blue-100'
         },
         {
-            title: 'Aktif Ekipler',
+            title: t('stats.activeTeams'),
             value: activeTeams.toString(),
-            change: 'Sahada',
+            change: t('stats.onField'),
             icon: UsersIcon,
             color: 'text-green-600',
             bg: 'bg-green-100'
         },
         {
-            title: 'Tamamlanan',
+            title: t('stats.completed'),
             value: completedJobsThisMonth.toString(),
-            change: 'Bu ay',
+            change: t('stats.thisMonth'),
             icon: CheckCircle2Icon,
             color: 'text-purple-600',
             bg: 'bg-purple-100'
         },
         {
-            title: 'Bekleyen Onay',
+            title: t('stats.pendingApproval'),
             value: pendingApprovals.toString(),
-            change: 'İncelenmeli',
+            change: t('stats.needsReview'),
             icon: ClockIcon,
             color: 'text-orange-600',
             bg: 'bg-orange-100'
@@ -66,15 +74,15 @@ export default async function ManagerDashboard() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">Yönetici Paneli</h1>
-                <p className="text-gray-500 mt-2">Operasyonel durumu buradan takip edebilirsiniz.</p>
+                <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
+                <p className="text-gray-500 mt-2">{t('subtitle')}</p>
             </div>
 
             {/* Stats Grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat, index) => {
                     const cardContent = (
-                        <Card className={`border-none shadow-sm hover:shadow-md transition-shadow ${stat.title === 'Bekleyen Onay' ? 'cursor-pointer' : ''}`}>
+                        <Card className={`border-none shadow-sm hover:shadow-md transition-shadow ${stat.title === t('stats.pendingApproval') ? 'cursor-pointer' : ''}`}>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium text-gray-500">
                                     {stat.title}
@@ -90,7 +98,7 @@ export default async function ManagerDashboard() {
                         </Card>
                     )
 
-                    return stat.title === 'Bekleyen Onay' ? (
+                    return stat.title === t('stats.pendingApproval') ? (
                         <Link key={index} href="/manager/approvals">
                             {cardContent}
                         </Link>
@@ -108,13 +116,13 @@ export default async function ManagerDashboard() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <TrendingUpIcon className="h-5 w-5 text-gray-500" />
-                            Son İşler
+                            {t('recentJobs.title')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-6">
                             {recentJobs.length === 0 ? (
-                                <p className="text-sm text-gray-500">Henüz kayıtlı iş bulunmuyor.</p>
+                                <p className="text-sm text-gray-500">{t('recentJobs.noJobs')}</p>
                             ) : (
                                 recentJobs.map((job) => (
                                     <div key={job.id} className="flex items-start gap-4">
@@ -123,11 +131,11 @@ export default async function ManagerDashboard() {
                                         </div>
                                         <div className="flex-1 space-y-1">
                                             <p className="text-sm font-medium text-gray-900">
-                                                {job.creator.name} <span className="text-gray-500 font-normal">yeni bir iş oluşturdu</span>
+                                                {job.creator.name} <span className="text-gray-500 font-normal">{t('recentJobs.createdNew')}</span>
                                             </p>
                                             <p className="text-sm text-gray-600">{job.title} - {job.customer.company}</p>
                                             <p className="text-xs text-gray-400">
-                                                {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true, locale: tr })}
+                                                {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true, locale: dateLocale })}
                                             </p>
                                         </div>
                                     </div>
@@ -140,7 +148,7 @@ export default async function ManagerDashboard() {
                 {/* Quick Actions */}
                 <Card className="border-none shadow-sm bg-indigo-50">
                     <CardHeader>
-                        <CardTitle className="text-indigo-900">Hızlı İşlemler</CardTitle>
+                        <CardTitle className="text-indigo-900">{t('quickActions.title')}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <Link href="/manager/jobs" className="block w-full bg-white p-4 rounded-lg shadow-sm text-left hover:bg-indigo-100 transition-colors flex items-center gap-3">
@@ -148,8 +156,8 @@ export default async function ManagerDashboard() {
                                 <BriefcaseIcon className="h-5 w-5" />
                             </div>
                             <div>
-                                <h3 className="font-medium text-indigo-900">Yeni İş Oluştur</h3>
-                                <p className="text-sm text-indigo-600/80">Müşteri için yeni bir servis kaydı aç</p>
+                                <h3 className="font-medium text-indigo-900">{t('quickActions.newJob.title')}</h3>
+                                <p className="text-sm text-indigo-600/80">{t('quickActions.newJob.desc')}</p>
                             </div>
                         </Link>
 
@@ -158,8 +166,8 @@ export default async function ManagerDashboard() {
                                 <UsersIcon className="h-5 w-5" />
                             </div>
                             <div>
-                                <h3 className="font-medium text-indigo-900">Raporlar</h3>
-                                <p className="text-sm text-indigo-600/80">Detaylı iş ve maliyet raporlarını incele</p>
+                                <h3 className="font-medium text-indigo-900">{t('quickActions.reports.title')}</h3>
+                                <p className="text-sm text-indigo-600/80">{t('quickActions.reports.desc')}</p>
                             </div>
                         </Link>
                     </CardContent>
