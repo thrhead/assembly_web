@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { SearchIcon, CalendarIcon, MapPinIcon, BriefcaseIcon, EditIcon } from "lucide-react"
+import { SearchIcon, CalendarIcon, MapPinIcon, BriefcaseIcon, EditIcon, Ban, AlertTriangle, UserIcon } from "lucide-react"
 import { Link } from "@/lib/navigation"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
@@ -199,12 +199,12 @@ export default async function JobsPage(props: {
                     <div className="text-sm text-gray-500">{job.customer.user.name}</div>
                     {job._count.steps === 0 && job.status === 'PENDING' && (
                       <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                        🚫 İşe Başlanmadı
+                        <Ban className="h-3 w-3 mr-1" /> İşe Başlanmadı
                       </div>
                     )}
                     {hasPendingApprovals && (
                       <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                        ⚠️ Onay Bekliyor
+                        <AlertTriangle className="h-3 w-3 mr-1" /> Onay Bekliyor
                       </div>
                     )}
                   </TableCell>
@@ -215,8 +215,8 @@ export default async function JobsPage(props: {
                           {job.assignments[0].team.name}
                         </Badge>
                         {job.assignments[0].team.lead && (
-                          <div className="text-xs text-gray-500">
-                            👤 Lider: {job.assignments[0].team.lead.name}
+                          <div className="text-xs text-gray-500 flex items-center">
+                            <UserIcon className="h-3 w-3 mr-1" /> Lider: {job.assignments[0].team.lead.name}
                           </div>
                         )}
                       </div>
@@ -278,9 +278,17 @@ export default async function JobsPage(props: {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
-                      <Link href={`/admin/jobs/${job.id}`} className="inline-flex items-center justify-center p-2 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors">
-                        <EditIcon className="h-4 w-4" />
-                      </Link>
+                      <JobDialog
+                        customers={mappedCustomers}
+                        teams={teams}
+                        templates={mappedTemplates}
+                        job={job}
+                        trigger={
+                          <button className="inline-flex items-center justify-center p-2 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors">
+                            <EditIcon className="h-4 w-4" />
+                          </button>
+                        }
+                      />
                       <DeleteJobButton jobId={job.id} jobTitle={job.title} />
                     </div>
                   </TableCell>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, use } from 'react'
+import Image from 'next/image'
 import { useRouter } from '@/lib/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,7 +12,7 @@ import { Input } from '@/components/ui/input'
 import {
   ArrowLeftIcon, MapPinIcon, CalendarIcon, PhoneIcon, Building2Icon,
   CheckCircle2Icon, CircleIcon, ClockIcon, AlertCircleIcon, CameraIcon,
-  ChevronDownIcon, ChevronUpIcon, ImageIcon, AlertTriangleIcon
+  ChevronDownIcon, ChevronUpIcon, ImageIcon, AlertTriangleIcon, Loader2, Wallet
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
@@ -266,7 +267,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
     <div className="space-y-6 max-w-3xl mx-auto pb-20">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+        <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label="Geri Dön">
           <ArrowLeftIcon className="h-5 w-5" />
         </Button>
         <div>
@@ -435,7 +436,13 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
                       <div className="flex gap-2 mt-2 overflow-x-auto pb-2">
                         {step.photos.map(photo => (
                           <div key={photo.id} className="relative h-16 w-16 rounded-md overflow-hidden border">
-                            <img src={photo.url} alt="Step photo" className="h-full w-full object-cover" />
+                            <Image 
+                              src={photo.url} 
+                              alt="Step photo" 
+                              fill 
+                              className="object-cover" 
+                              unoptimized 
+                            />
                           </div>
                         ))}
                       </div>
@@ -516,7 +523,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
                         disabled={uploadingPhoto === step.id}
                       >
                         {uploadingPhoto === step.id ? (
-                          <span className="animate-spin">⌛</span>
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <CameraIcon className="h-4 w-4" />
                         )}
@@ -551,7 +558,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
             className="w-full h-12 text-base"
             onClick={() => setShowCostDialog(true)}
           >
-            💰 Masraf Ekle
+            <Wallet className="h-4 w-4 mr-2" /> Masraf Ekle
           </Button>
 
           {job.status === 'PENDING' && (

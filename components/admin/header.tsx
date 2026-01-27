@@ -46,7 +46,7 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   return (
     <div className="h-16 border-b bg-white flex items-center justify-between px-4 sticky top-0 z-40">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
+        <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden" aria-label="Menüyü Aç">
           <MenuIcon className="h-5 w-5" />
         </Button>
         <h1 className="font-bold text-lg text-indigo-600">Montaj Takip</h1>
@@ -56,7 +56,13 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="relative text-gray-600 hover:bg-gray-100" onClick={() => router.push('/admin/notifications')}>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="relative text-gray-600 hover:bg-gray-100" 
+          onClick={() => router.push('/admin/notifications')}
+          aria-label={`${unreadCount > 0 ? unreadCount + ' okunmamış ' : ''}Bildirimler`}
+        >
           <BellIcon className="h-6 w-6" />
           {unreadCount > 0 && (
             <span className="absolute top-2 right-2 h-2.5 w-2.5 bg-red-600 rounded-full ring-2 ring-white" />
@@ -65,7 +71,7 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
+            <Button variant="ghost" size="icon" className="rounded-full" aria-label="Kullanıcı Menüsü">
               <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
                 A
               </div>

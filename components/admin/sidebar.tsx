@@ -112,7 +112,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           <Link href="/admin" className="flex items-center gap-2 font-bold text-xl text-indigo-600" onClick={onClose}>
             <span>Montaj Takip</span>
           </Link>
-          <Button variant="ghost" size="icon" onClick={onClose} className="lg:hidden">
+          <Button variant="ghost" size="icon" onClick={onClose} className="lg:hidden" aria-label="Menüyü Kapat">
             <XIcon className="h-5 w-5" />
           </Button>
         </div>
@@ -134,7 +134,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                   )}
                   onClick={onClose}
                 >
-                  <item.icon className={cn("h-5 w-5", isActive ? "text-indigo-600" : "text-gray-400")} />
+                  <item.icon className={cn("h-5 w-5", isActive ? "text-indigo-600" : "text-gray-500")} />
                   {item.title}
                 </Link>
               )

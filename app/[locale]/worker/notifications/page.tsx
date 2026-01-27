@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { formatDistanceToNow } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import Link from '@/lib/navigation'
+import { CheckCircle2, AlertTriangle, XCircle, Bell, Inbox } from 'lucide-react'
 
 async function getNotifications(userId: string) {
   return await prisma.notification.findMany({
@@ -49,10 +50,10 @@ export default async function NotificationsPage() {
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'SUCCESS': return '✅'
-      case 'WARNING': return '⚠️'
-      case 'ERROR': return '❌'
-      default: return '📢'
+      case 'SUCCESS': return <CheckCircle2 className="h-6 w-6 text-green-600" />
+      case 'WARNING': return <AlertTriangle className="h-6 w-6 text-yellow-600" />
+      case 'ERROR': return <XCircle className="h-6 w-6 text-red-600" />
+      default: return <Bell className="h-6 w-6 text-blue-600" />
     }
   }
 
@@ -83,7 +84,7 @@ export default async function NotificationsPage() {
               }`}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
-                    <span className="text-2xl">{getNotificationIcon(notification.type)}</span>
+                    <div className="mt-0.5">{getNotificationIcon(notification.type)}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <h4 className={`text-sm ${!notification.isRead ? 'font-semibold' : 'font-medium'}`}>
@@ -126,8 +127,8 @@ export default async function NotificationsPage() {
       {/* Notifications */}
       {notifications.length === 0 ? (
         <Card>
-          <CardContent className="p-12 text-center">
-            <div className="text-6xl mb-4">📭</div>
+          <CardContent className="p-12 text-center flex flex-col items-center justify-center">
+            <Inbox className="h-16 w-16 text-gray-300 mb-4" />
             <h3 className="text-lg font-medium text-gray-900">Bildiriminiz bulunmuyor</h3>
             <p className="text-gray-500 mt-1">Yeni bildirimler burada görünecek</p>
           </CardContent>

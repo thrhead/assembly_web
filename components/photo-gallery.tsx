@@ -92,6 +92,7 @@ export function PhotoGallery({ photos, canDelete = false, onDelete }: PhotoGalle
                                 size="icon"
                                 variant="ghost"
                                 className="h-8 w-8 bg-white/80 hover:bg-white text-black"
+                                aria-label="Büyüt"
                             >
                                 <Maximize2 className="h-4 w-4" />
                             </Button>
@@ -116,6 +117,7 @@ export function PhotoGallery({ photos, canDelete = false, onDelete }: PhotoGalle
                                 size="icon"
                                 variant="ghost"
                                 className="bg-white/80 hover:bg-white text-black"
+                                aria-label="İndir"
                                 onClick={() =>
                                     downloadPhoto(
                                         photos[currentIndex].url,
@@ -130,6 +132,7 @@ export function PhotoGallery({ photos, canDelete = false, onDelete }: PhotoGalle
                                 <Button
                                     size="icon"
                                     variant="destructive"
+                                    aria-label="Sil"
                                     onClick={() => handleDelete(photos[currentIndex].publicId)}
                                     disabled={deleting === photos[currentIndex].publicId}
                                 >
@@ -143,12 +146,14 @@ export function PhotoGallery({ photos, canDelete = false, onDelete }: PhotoGalle
                                 <button
                                     onClick={prevPhoto}
                                     className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+                                    aria-label="Önceki Fotoğraf"
                                 >
                                     ←
                                 </button>
                                 <button
                                     onClick={nextPhoto}
                                     className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+                                    aria-label="Sonraki Fotoğraf"
                                 >
                                     →
                                 </button>

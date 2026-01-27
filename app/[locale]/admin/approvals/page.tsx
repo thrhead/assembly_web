@@ -8,6 +8,7 @@ import { tr } from 'date-fns/locale'
 import { ApprovalDialog } from '@/components/approvals/approval-dialog'
 import Link from '@/lib/navigation'
 import { getApprovals } from '@/lib/data/approvals'
+import { CheckCircle2 } from 'lucide-react'
 
 export default async function ApprovalsPage() {
   const session = await auth()
@@ -32,7 +33,7 @@ export default async function ApprovalsPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {approvals.length === 0 && (
           <div className="col-span-full text-center py-12 bg-white rounded-lg border border-dashed">
-            <div className="text-6xl mb-3">✅</div>
+            <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-3" />
             <h3 className="text-lg font-medium text-gray-900">Onay bekleyen iş bulunmuyor</h3>
             <p className="text-gray-500 mt-1">Tüm işler onaylandı</p>
           </div>
