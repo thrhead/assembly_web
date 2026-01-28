@@ -7,6 +7,7 @@
 ## Archived Tracks (2026)
 | ID | Title | Date |
 |----|-------|------|
+| [mobile-approval-filtering-sync](./archive/mobile_approval_filtering_sync_20260128/metadata.json) | Mobile Approval & Filtering Synchronization | 2026-01-28 |
 | [mobile-pwa-navigation-fix](./archive/mobile_pwa_navigation_fix_20260128/metadata.json) | Mobile PWA Navigation & Back Button Fix | 2026-01-28 |
 | [mobile-pwa-routing-fix](./archive/mobile_pwa_routing_fix_20260128/metadata.json) | Mobile PWA Routing 404 Fix | 2026-01-28 |
 | [web-ui-semantic-buttons](./archive/web_ui_semantic_buttons_20260128/metadata.json) | Web UI Semantic Button Refactor | 2026-01-28 |
