@@ -40,9 +40,22 @@ export default async function ManagerApprovalsPage() {
 
     const approvals = await getApprovals()
 
+    // Define type for serialized approval data
+    type SerializedApproval = {
+        id: string
+        notes: string | null
+        createdAt: string | null
+        job: {
+            id: string
+            title: string
+            customer: { company: string } | null
+        } | null
+        requester: { name: string | null; email: string } | null
+    }
+
     // Serialize all dates for client components using JSON parse/stringify
     // This handles all nested Date objects automatically
-    const serializedApprovals = JSON.parse(JSON.stringify(approvals))
+    const serializedApprovals: SerializedApproval[] = JSON.parse(JSON.stringify(approvals))
 
     return (
         <div className="p-6 max-w-7xl mx-auto">
@@ -68,7 +81,7 @@ export default async function ManagerApprovalsPage() {
                     <Card key={approval.id} className="hover:shadow-md transition-shadow">
                         <CardHeader className="pb-3">
                             <div className="flex items-start justify-between gap-2">
-                                <CardTitle className="text-lg line-clamp-2">{approval.job.title}</CardTitle>
+                                <CardTitle className="text-lg line-clamp-2">{approval.job?.title || 'Bilinmeyen İş'}</CardTitle>
                                 <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 shrink-0">
                                     Bekliyor
                                 </Badge>
@@ -77,7 +90,7 @@ export default async function ManagerApprovalsPage() {
                         <CardContent className="space-y-3">
                             <div>
                                 <p className="text-sm text-gray-600">
-                                    <span className="font-medium">Müşteri:</span> {approval.job.customer?.company || 'Bilinmeyen Müşteri'}
+                                    <span className="font-medium">Müşteri:</span> {approval.job?.customer?.company || 'Bilinmeyen Müşteri'}
                                 </p>
                                 <p className="text-sm text-gray-600">
                                     <span className="font-medium">Talep Eden:</span> {approval.requester?.name || approval.requester?.email || 'Bilinmiyor'}

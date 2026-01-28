@@ -19,9 +19,22 @@ export default async function ApprovalsPage() {
 
   const approvals = await getApprovals()
 
+  // Define type for serialized approval data
+  type SerializedApproval = {
+    id: string
+    notes: string | null
+    createdAt: string | null
+    job: {
+      id: string
+      title: string
+      customer: { company: string } | null
+    } | null
+    requester: { name: string | null; email: string } | null
+  }
+
   // Serialize all dates for client components using JSON parse/stringify
   // This handles all nested Date objects automatically
-  const serializedApprovals = JSON.parse(JSON.stringify(approvals))
+  const serializedApprovals: SerializedApproval[] = JSON.parse(JSON.stringify(approvals))
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
