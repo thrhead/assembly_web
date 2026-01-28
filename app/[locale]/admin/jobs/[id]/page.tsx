@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { Link } from "@/lib/navigation"
-import { AdminJobDetailsTabs } from "@/components/admin/job-details-tabs"
+// import { AdminJobDetailsTabs } from "@/components/admin/job-details-tabs"
 import { ApprovalActionCard } from "@/components/admin/approval-action-card"
 import { getJob } from "@/lib/data/jobs"
 import { JobDialog } from "@/components/admin/job-dialog"
@@ -12,8 +12,14 @@ import { DeleteJobButton } from "@/components/admin/delete-job-button"
 import { EditIcon } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { ChatPanel } from "@/components/chat/ChatPanel"
+import dynamic from 'next/dynamic'
 
-export const dynamic = 'force-dynamic'
+const AdminJobDetailsTabs = dynamic(
+    () => import('@/components/admin/job-details-tabs').then(mod => mod.AdminJobDetailsTabs),
+    { ssr: false, loading: () => <div className="h-96 w-full animate-pulse bg-gray-100 rounded-lg" /> }
+)
+
+export const dynamicParams = true
 
 export default async function AdminJobDetailsPage(props: {
     params: Promise<{ id: string }>
