@@ -2,11 +2,13 @@
 
 | ID | Title | Status |
 |----|-------|--------|
-| [mobile-pwa-routing-fix](./tracks/mobile_pwa_routing_fix/metadata.json) | Mobile PWA Routing 404 Fix | In Progress |
+| - | - | - |
 
 ## Archived Tracks (2026)
 | ID | Title | Date |
 |----|-------|------|
+| [mobile-pwa-navigation-fix](./archive/mobile_pwa_navigation_fix_20260128/metadata.json) | Mobile PWA Navigation & Back Button Fix | 2026-01-28 |
+| [mobile-pwa-routing-fix](./archive/mobile_pwa_routing_fix_20260128/metadata.json) | Mobile PWA Routing 404 Fix | 2026-01-28 |
 | [web-ui-semantic-buttons](./archive/web_ui_semantic_buttons_20260128/metadata.json) | Web UI Semantic Button Refactor | 2026-01-28 |
 | [web-ui-color-tokenization](./archive/web_ui_color_tokenization_20260128/metadata.json) | Web UI Global Color Tokenization | 2026-01-28 |
 | [web-ui-hardcoded-cleanup](./archive/web_ui_hardcoded_cleanup_20260128/metadata.json) | Web UI Hardcoded Color Cleanup | 2026-01-28 |

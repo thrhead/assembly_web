@@ -1,7 +1,7 @@
 {
   "id": "mobile-pwa-routing-fix",
   "title": "Mobile PWA Routing 404 Fix",
-  "status": "In Progress",
+  "status": "Completed",
   "priority": "High",
   "createdAt": "2026-01-28",
   "description": "Vercel üzerinde PWA sayfaları yenilendiğinde alınan 404 hatasının rewrites kuralları ile düzeltilmesi."
