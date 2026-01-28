@@ -27,6 +27,28 @@ interface ApprovalsListClientProps {
 }
 
 export function ApprovalsListClient({ approvals }: ApprovalsListClientProps) {
+    if (!approvals || !Array.isArray(approvals)) {
+        return (
+            <div className="p-8 text-center text-gray-500">
+                Veri yüklenemedi veya onay bekleyen iş yok.
+            </div>
+        )
+    }
+
+    const formatDate = (dateString?: string | null) => {
+        if (!dateString) return '-'
+        try {
+            const date = new Date(dateString)
+            if (isNaN(date.getTime())) return 'Geçersiz Tarih'
+            return formatDistanceToNow(date, {
+                addSuffix: true,
+                locale: tr
+            })
+        } catch (e) {
+            return '-'
+        }
+    }
+
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {approvals.length === 0 && (
@@ -57,10 +79,7 @@ export function ApprovalsListClient({ approvals }: ApprovalsListClientProps) {
                             </p>
                             <p className="text-sm text-gray-600">
                                 <span className="font-medium">Talep Tarihi:</span>{' '}
-                                {approval.createdAt ? formatDistanceToNow(new Date(approval.createdAt), {
-                                    addSuffix: true,
-                                    locale: tr
-                                }) : '-'}
+                                {formatDate(approval.createdAt)}
                             </p>
                         </div>
 
