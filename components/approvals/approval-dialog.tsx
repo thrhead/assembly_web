@@ -20,8 +20,9 @@ interface ApprovalDialogProps {
   approval: {
     id: string
     job?: {
+      id?: string
       title?: string
-      customer?: { company?: string }
+      customer?: { company?: string } | null
     } | null
     requester?: { name?: string | null; email?: string } | null
   }
