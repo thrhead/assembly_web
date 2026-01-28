@@ -120,7 +120,7 @@ export default async function AdminJobDetailsPage(props: {
             )}
 
             <AdminJobDetailsTabs
-                job={job}
+                job={JSON.parse(JSON.stringify(job))}
                 workers={workers}
                 teams={teams}
             />
