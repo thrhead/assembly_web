@@ -21,17 +21,19 @@ export function JobApprovalsView({ job }: JobApprovalsViewProps) {
     const [rejectionReason, setRejectionReason] = useState('')
 
     // Get all steps that are COMPLETED but not yet APPROVED/REJECTED (or just pending)
-    const pendingSteps = job.steps.filter((s: any) => s.isCompleted && s.approvalStatus === 'PENDING')
+    const pendingSteps = (job?.steps || []).filter((s: any) => s.isCompleted && s.approvalStatus === 'PENDING')
 
     // Also get pending substeps of steps that might not be fully completed yet
     const pendingSubSteps: any[] = []
-    job.steps.forEach((step: any) => {
-        step.subSteps?.forEach((ss: any) => {
-            if (ss.isCompleted && ss.approvalStatus === 'PENDING') {
-                pendingSubSteps.push({ ...ss, parentStepTitle: step.title })
-            }
+    if (job?.steps) {
+        job.steps.forEach((step: any) => {
+            step.subSteps?.forEach((ss: any) => {
+                if (ss.isCompleted && ss.approvalStatus === 'PENDING') {
+                    pendingSubSteps.push({ ...ss, parentStepTitle: step.title })
+                }
+            })
         })
-    })
+    }
 
     const handleApprove = async (id: string, type: 'STEP' | 'SUBSTEP') => {
         setLoading(id)

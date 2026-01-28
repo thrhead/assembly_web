@@ -58,6 +58,8 @@ export function ApprovalActionCard({ approval }: ApprovalActionCardProps) {
 
     if (approval.status !== 'PENDING') return null
 
+    const requesterName = approval.requester?.name || approval.requester?.email || 'Bilinmiyor'
+
     return (
         <Card className="border-yellow-400 bg-yellow-50 mb-6">
             <CardHeader className="pb-3">
@@ -68,7 +70,7 @@ export function ApprovalActionCard({ approval }: ApprovalActionCardProps) {
             </CardHeader>
             <CardContent className="space-y-4">
                 <Alert className="bg-white border-yellow-200">
-                    <AlertTitle>Talep Eden: {approval.requester?.name || approval.requester?.email || 'Bilinmiyor'}</AlertTitle>
+                    <AlertTitle>Talep Eden: {requesterName}</AlertTitle>
                     <AlertDescription className="text-gray-600">
                         Bu iş tamamlandı olarak işaretlendi ve onayınızı bekliyor.
                         İşin detaylarını aşağıdan inceleyebilir, uygunsa onaylayabilir veya reddedebilirsiniz.

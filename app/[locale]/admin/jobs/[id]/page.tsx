@@ -45,26 +45,7 @@ export default async function AdminJobDetailsPage(props: {
         })
     ])
 
-    const job = jobResult as any
-
-    // Map templates
-    const dialogCustomers = customers.map(c => ({
-        id: c.id,
-        company: c.company,
-        user: { name: c.user.name || '' }
-    }))
-
-    const dialogTemplates = templates.map(t => ({
-        id: t.id,
-        name: t.name,
-        steps: t.steps.map(s => ({
-            title: s.title,
-            description: '',
-            subSteps: s.subSteps.map(ss => ({ title: ss.title }))
-        }))
-    }))
-
-    if (!job) {
+    if (!jobResult) {
         return (
             <div className="p-8 text-center">
                 <h1 className="text-2xl font-bold text-gray-900">İş Bulunamadı</h1>
@@ -75,6 +56,26 @@ export default async function AdminJobDetailsPage(props: {
             </div>
         )
     }
+
+    // Serialize job to avoid Date object issues between Server and Client components
+    const job = JSON.parse(JSON.stringify(jobResult))
+
+    // Map templates with safety
+    const dialogCustomers = customers.map(c => ({
+        id: c.id,
+        company: c.company,
+        user: { name: c.user?.name || '' }
+    }))
+
+    const dialogTemplates = templates.map(t => ({
+        id: t.id,
+        name: t.name,
+        steps: (t.steps || []).map(s => ({
+            title: s.title,
+            description: '',
+            subSteps: (s.subSteps || []).map(ss => ({ title: ss.title }))
+        }))
+    }))
 
     const pendingApproval = job.approvals?.[0]
 
