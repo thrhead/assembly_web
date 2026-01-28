@@ -14,6 +14,87 @@ const withPWA = require("@ducanh2912/next-pwa").default({
     swcMinify: true,
     workboxOptions: {
         disableDevLogs: true,
+        exclude: [/middleware-manifest\.json$/, /build-manifest\.json$/, /react-loadable-manifest\.json$/, /\/uploads\//, /\.map$/],
+        runtimeCaching: [
+            {
+                urlPattern: /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,
+                handler: 'CacheFirst',
+                options: {
+                    cacheName: 'google-fonts-webfonts',
+                    expiration: {
+                        maxEntries: 4,
+                        maxAgeSeconds: 365 * 24 * 60 * 60, // 365 days
+                    },
+                },
+            },
+            {
+                urlPattern: /^https:\/\/fonts\.(?:googleapis)\.com\/.*/i,
+                handler: 'StaleWhileRevalidate',
+                options: {
+                    cacheName: 'google-fonts-stylesheets',
+                    expiration: {
+                        maxEntries: 4,
+                        maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+                    },
+                },
+            },
+            {
+                urlPattern: /\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,
+                handler: 'StaleWhileRevalidate',
+                options: {
+                    cacheName: 'static-font-assets',
+                    expiration: {
+                        maxEntries: 4,
+                        maxAgeSeconds: 7 * 24 * 60 * 60 // 7 days
+                    },
+                },
+            },
+            {
+                urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
+                handler: 'StaleWhileRevalidate',
+                options: {
+                    cacheName: 'static-image-assets',
+                    expiration: {
+                        maxEntries: 64,
+                        maxAgeSeconds: 24 * 60 * 60 // 24 hours
+                    },
+                },
+            },
+            {
+                urlPattern: /\/_next\/image\?url=.+$/i,
+                handler: 'StaleWhileRevalidate',
+                options: {
+                    cacheName: 'next-image',
+                    expiration: {
+                        maxEntries: 64,
+                        maxAgeSeconds: 24 * 60 * 60, // 24 hours
+                    },
+                },
+            },
+            {
+                urlPattern: /\/api\/.*$/i,
+                handler: 'NetworkFirst',
+                options: {
+                    cacheName: 'apis',
+                    expiration: {
+                        maxEntries: 16,
+                        maxAgeSeconds: 24 * 60 * 60, // 24 hours
+                    },
+                    networkTimeoutSeconds: 10, // fallback to cache if API takes >10s
+                },
+            },
+            {
+                urlPattern: /\/uploads\/.*$/i,
+                handler: 'NetworkFirst', // Uploads should try network first, then cache
+                options: {
+                    cacheName: 'uploads',
+                    expiration: {
+                        maxEntries: 32,
+                        maxAgeSeconds: 24 * 60 * 60, // 24 hours
+                    },
+                },
+            },
+        ],
     },
 });
 
