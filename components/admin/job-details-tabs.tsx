@@ -250,19 +250,30 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                                     <span className="text-gray-500">Tamamlanan:</span>
                                     <span className="font-medium text-green-600">{completedSteps}</span>
                                 </div>
-                                {job.status === 'IN_PROGRESS' && job.startedAt && completedSteps > 0 && (
+                                {job.status === 'IN_PROGRESS' && job.startedAt && completedSteps > 0 && totalSteps > 0 && (
                                     <div className="mt-4 pt-4 border-t space-y-2">
                                         <div className="flex justify-between text-xs">
                                             <span className="text-gray-500">Tahmini Bitiş:</span>
                                             <span className="font-bold text-blue-600">
                                                 {(() => {
-                                                    const start = new Date(job.startedAt).getTime()
-                                                    const now = new Date().getTime()
-                                                    const elapsed = now - start
-                                                    const progress = completedSteps / totalSteps
-                                                    const totalEst = elapsed / progress
-                                                    const finishDate = new Date(start + totalEst)
-                                                    return finishDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+                                                    try {
+                                                        const start = new Date(job.startedAt).getTime()
+                                                        const now = new Date().getTime()
+                                                        const elapsed = now - start
+                                                        const progress = completedSteps / totalSteps
+                                                        
+                                                        if (progress <= 0 || isNaN(progress)) return '-'
+                                                        
+                                                        const totalEst = elapsed / progress
+                                                        if (!isFinite(totalEst)) return '-'
+                                                        
+                                                        const finishDate = new Date(start + totalEst)
+                                                        if (isNaN(finishDate.getTime())) return '-'
+                                                        
+                                                        return finishDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+                                                    } catch (e) {
+                                                        return '-'
+                                                    }
                                                 })()}
                                             </span>
                                         </div>
