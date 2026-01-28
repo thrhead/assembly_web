@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { Link } from "@/lib/navigation"
 // import { AdminJobDetailsTabs } from "@/components/admin/job-details-tabs"
-import { ApprovalActionCard } from "@/components/admin/approval-action-card"
+// import { ApprovalActionCard } from "@/components/admin/approval-action-card"
 import { getJob } from "@/lib/data/jobs"
 import { JobDialog } from "@/components/admin/job-dialog"
 import { DeleteJobButton } from "@/components/admin/delete-job-button"
@@ -116,14 +116,11 @@ export default async function AdminJobDetailsPage(props: {
                 </div>
             </div>
 
-            {pendingApproval && (
-                <ApprovalActionCard approval={pendingApproval} />
-            )}
-
             <JobDetailsClientWrapper
                 job={JSON.parse(JSON.stringify(job))}
                 workers={workers}
                 teams={teams}
+                pendingApproval={pendingApproval}
             />
 
             <Card>
