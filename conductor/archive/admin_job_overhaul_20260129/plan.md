@@ -4,7 +4,7 @@
 - [x] **Alan Temizleme:** Boş bırakılan alanların (açıklama, konum) veritabanında güncellenmemesi sorunu düzeltildi.
 - [x] **Tarih İşleme:** `scheduledDate` gibi alanlarda boş dize hataları (Invalid Date) giderildi.
 - [x] **TypeError:** `JobDialog` içinde adımlar filtrelenirken oluşan `trim()` hatası çözüldü.
-- [x] **Veri Kaybı Önleme:** Güncelleme sırasında kontrol listesi ID'leri korunarak mevcut ilerlemenin (tamamlanma durumu) sıfırlanması engellendi.
+- [x] **Veri Kaybı Önleme (Checklist):** İş güncelleme sırasında kontrol listesi (checklist), alt adımlar ve fotoğrafların silinmesi sorunu, `deleteMany` işlemlerinin devre dışı bırakılmasıyla çözüldü.
 
 ## 2. UI/UX İyileştirmeleri
 - [x] **Detay İçi Düzenleme:** `JobEditView` statik metinden düzenlenebilir tarih/saat seçicilere dönüştürüldü.
