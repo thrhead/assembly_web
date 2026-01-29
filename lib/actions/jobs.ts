@@ -15,6 +15,7 @@ const jobSchema = z.object({
   customerId: z.string().min(1, 'Müşteri seçilmelidir'),
   teamId: z.string().optional().nullable(),
   workerId: z.string().optional().nullable(),
+  jobLeadId: z.string().optional().nullable(), // Yeni alan
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
   location: z.string().optional(),
   scheduledDate: z.string().optional(), // ISO date string
@@ -57,6 +58,7 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
     customerId: formData.get('customerId'),
     teamId: formData.get('teamId'),
     workerId: formData.get('workerId'),
+    jobLeadId: formData.get('jobLeadId'), // Yeni alan
     priority: formData.get('priority'),
     location: formData.get('location'),
     scheduledDate: formData.get('scheduledDate'),
@@ -80,10 +82,11 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
       // 1. Create Job
       const newJob = await tx.job.create({
         data: {
-          jobNo: jobNo, // Numarayı atayalım
+          jobNo: jobNo,
           title: stripHtml(validated.data.title),
           description: validated.data.description ? sanitizeHtml(validated.data.description) : null,
           customerId: validated.data.customerId,
+          jobLeadId: validated.data.jobLeadId || null, // Atama
           priority: validated.data.priority,
           location: validated.data.location ? stripHtml(validated.data.location) : null,
           scheduledDate: validated.data.scheduledDate ? new Date(validated.data.scheduledDate) : null,
@@ -164,6 +167,7 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
     customerId,
     teamId,
     workerId,
+    jobLeadId, // Yeni alan
     priority,
     status,
     acceptanceStatus,
@@ -178,7 +182,6 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
   try {
     await prisma.$transaction(async (tx) => {
       // 1. Update Job Basic Info
-      // We use helper to convert empty strings or invalid dates to null
       const parseDate = (d: string | undefined | null) => {
         if (!d || d.trim() === '') return null;
         const date = new Date(d);
@@ -191,6 +194,7 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
           title: title ? stripHtml(title) : undefined,
           description: (description !== undefined) ? (description ? sanitizeHtml(description) : null) : undefined,
           customerId: customerId,
+          jobLeadId: jobLeadId || null, // Atama
           priority: priority,
           status: status || undefined,
           acceptanceStatus: acceptanceStatus || undefined,
@@ -219,36 +223,19 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
       }
 
       // 3. Update Steps
-      // Only modify steps if steps array is explicitly provided (not undefined/null)
-      // Note: JobDialog sends empty array [] if all steps are removed, so this works.
       if (steps !== undefined && steps !== null) {
-        // Fetch existing steps to identify what needs to be deleted
         const existingSteps = await tx.jobStep.findMany({
           where: { jobId: id },
           select: { id: true }
         })
         const existingStepIds = existingSteps.map(s => s.id)
-
-        // Identify steps to keep or update
         const incomingStepIds = steps.filter(s => s.id).map(s => s.id!)
-        
-        // CRITICAL FIX: Disable deletion of main steps too.
-        // If a main step is deleted, all substeps and photos are deleted via CASCADE.
-        // We stop this to prevent data loss.
-        // const stepsToDelete = existingStepIds.filter(id => !incomingStepIds.includes(id))
-
-        // if (stepsToDelete.length > 0) {
-        //   await tx.jobStep.deleteMany({
-        //     where: { id: { in: stepsToDelete } }
-        //   })
-        // }
 
         for (let i = 0; i < steps.length; i++) {
           const stepData = steps[i]
           let stepId = stepData.id
 
           if (stepId) {
-            // Update existing step - Preserve isCompleted status unless explicitly managed elsewhere
             await tx.jobStep.update({
               where: { id: stepId },
               data: {
@@ -258,7 +245,6 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
               }
             })
           } else {
-            // Create new step
             const newStep = await tx.jobStep.create({
               data: {
                 jobId: id,
@@ -270,87 +256,23 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
             stepId = newStep.id
           }
 
-                    // Handle SubSteps
-
-                    if (stepData.subSteps) {
-
-                      // Fetch existing substeps for THIS step to manage deletions properly
-
-                      // const existingSubSteps = await tx.jobSubStep.findMany({
-
-                      //   where: { stepId: stepId },
-
-                      //   select: { id: true }
-
-                      // })
-
-                      // const existingSubStepIds = existingSubSteps.map(s => s.id)
-
-                      // const incomingSubStepIds = stepData.subSteps.filter(s => s.id).map(s => s.id!)
-
-                      
-
-                      // CRITICAL FIX: Do NOT delete subSteps automatically. 
-
-                      // This prevents accidental data loss if the UI doesn't send complete subStep data.
-
-                      // const subStepsToDelete = existingSubStepIds.filter(sid => !incomingSubStepIds.includes(sid))
-
-          
-
-                      // if (subStepsToDelete.length > 0) {
-
-                      //   await tx.jobSubStep.deleteMany({ where: { id: { in: subStepsToDelete } } })
-
-                      // }
-
-          
-
-                      for (let j = 0; j < stepData.subSteps.length; j++) {
-
-                        const subData = stepData.subSteps[j]
-
-                        if (subData.id) {
-
-                          // Update existing substep
-
-                          await tx.jobSubStep.update({
-
-                            where: { id: subData.id },
-
-                            data: { title: stripHtml(subData.title), order: j + 1 }
-
-                          })
-
-                        } else {
-
-                          // Create new substep
-
-                          await tx.jobSubStep.create({
-
-                            data: {
-
-                              stepId: stepId!,
-
-                              title: stripHtml(subData.title),
-
-                              order: j + 1
-
-                            }
-
-                          })
-
-                        }
-
-                      }
-
-                    }
-
-           else {
-            // If subSteps is NOT provided (undefined/null), DO NOT DELETE existing substeps.
-            // Only delete if it's an empty array [].
-            if (Array.isArray(stepData.subSteps)) {
-               await tx.jobSubStep.deleteMany({ where: { stepId: stepId } })
+          if (stepData.subSteps) {
+            for (let j = 0; j < stepData.subSteps.length; j++) {
+              const subData = stepData.subSteps[j]
+              if (subData.id) {
+                await tx.jobSubStep.update({
+                  where: { id: subData.id },
+                  data: { title: stripHtml(subData.title), order: j + 1 }
+                })
+              } else {
+                await tx.jobSubStep.create({
+                  data: {
+                    stepId: stepId!,
+                    title: stripHtml(subData.title),
+                    order: j + 1
+                  }
+                })
+              }
             }
           }
         }
@@ -367,25 +289,18 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
     return { success: true }
   } catch (error) {
     console.error('Job update error:', error)
-    throw error // Re-throw to be caught by client
+    throw error
   }
 }
 
 export async function deleteJobAction(id: string) {
   const session = await auth()
-
   if (!session || session.user.role !== 'ADMIN') {
     throw new Error('Yetkisiz işlem: Sadece yöneticiler iş silebilir.')
   }
-
   try {
-    await prisma.job.delete({
-      where: { id }
-    })
-
-    // Yan etkileri tetikle
+    await prisma.job.delete({ where: { id } })
     await EventBus.emit('job.deleted', { id })
-
     revalidatePath('/admin/jobs')
     return { success: true }
   } catch (error) {

@@ -163,6 +163,12 @@ export async function getJob(id: string) {
             user: true
           }
         },
+        jobLead: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
         assignments: {
           include: {
             team: {

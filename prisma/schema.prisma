@@ -36,6 +36,7 @@ model User {
   uploadedPhotos     StepPhoto[]
   teamMember         TeamMember[]
   managedTeams       Team[]          @relation("TeamLead")
+  ledJobs            Job[]           @relation("JobLead")
   sentMessages       Message[]       @relation("MessageSender")
   receivedMessages   Message[]       @relation("MessageReceiver")
   apiKeys            ApiKey[]
@@ -92,6 +93,7 @@ model Job {
   description      String?
   customerId       String
   creatorId        String
+  jobLeadId        String?         // İş özelindeki lider
   status           String          @default("PENDING")
   priority         String          @default("MEDIUM")
   location         String?
@@ -120,6 +122,7 @@ model Job {
   conversations    Conversation[]
   acceptedBy       User?           @relation("JobAccepter", fields: [acceptedById], references: [id])
   creator          User            @relation("JobCreator", fields: [creatorId], references: [id])
+  jobLead          User?           @relation("JobLead", fields: [jobLeadId], references: [id])
   customer         Customer        @relation(fields: [customerId], references: [id])
 
   @@index([status, createdAt])

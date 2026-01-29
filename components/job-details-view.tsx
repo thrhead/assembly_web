@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
-import { CheckCircle2, Circle, Clock, User, Briefcase, Calendar, MapPin, ChevronDown, ChevronUp, ImageIcon } from "lucide-react"
+import { CheckCircle2, Circle, Clock, User, Briefcase, Calendar, MapPin, ChevronDown, ChevronUp, ImageIcon, UserCog } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Progress } from "@/components/ui/progress"
@@ -20,6 +20,10 @@ interface JobDetailsProps {
         priority: string
         location: string | null
         createdAt: Date
+        jobLead?: {
+            id: string
+            name: string | null
+        } | null
         customer: {
             company: string
             user: {
@@ -170,6 +174,20 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                         <CardTitle>Müşteri ve Ekip Bilgileri</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
+                        {/* İş Sorumlusu / Lider Bölümü */}
+                        <div>
+                            <h3 className="text-sm font-medium text-gray-500 mb-2">İşten Sorumlu Lider</h3>
+                            <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
+                                <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 shadow-sm border border-amber-200">
+                                    <UserCog className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <p className="font-bold text-sm text-amber-900">{job.jobLead?.name || 'Lider Atanmamış'}</p>
+                                    <p className="text-[10px] text-amber-700 uppercase font-semibold">Ana Sorumlu</p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div>
                             <h3 className="text-sm font-medium text-gray-500 mb-2">Müşteri</h3>
                             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -211,10 +229,10 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                                                     {/* Diğer Çalışanlar Gösterimi */}
                                                     {assignment.team.members && assignment.team.members.length > 0 && (
                                                         <div className="ml-4 space-y-1">
-                                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Çalışanlar</p>
+                                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Ekip Üyeleri</p>
                                                             <div className="grid grid-cols-1 gap-1">
                                                                 {assignment.team.members
-                                                                    .filter(m => m.user.id !== assignment.team?.lead?.id)
+                                                                    .filter(m => m.user.id !== job.jobLead?.id)
                                                                     .map((member, mIdx) => (
                                                                         <div key={mIdx} className="flex items-center gap-2 text-sm text-gray-600 bg-white p-1.5 rounded border border-gray-100 shadow-sm">
                                                                             <User className="h-3.5 w-3.5 text-gray-400" />
@@ -222,8 +240,8 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                                                                         </div>
                                                                     ))
                                                                 }
-                                                                {assignment.team.members.filter(m => m.user.id !== assignment.team?.lead?.id).length === 0 && (
-                                                                    <p className="text-xs text-gray-400 italic">Başka çalışan bulunmuyor.</p>
+                                                                {assignment.team.members.filter(m => m.user.id !== job.jobLead?.id).length === 0 && (
+                                                                    <p className="text-xs text-gray-400 italic">Başka üye bulunmuyor.</p>
                                                                 )}
                                                             </div>
                                                         </div>

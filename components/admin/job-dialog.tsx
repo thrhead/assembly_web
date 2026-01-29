@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { PlusIcon, Loader2Icon, XIcon, ChevronUpIcon, ChevronDownIcon, CornerDownRightIcon } from 'lucide-react'
+import { PlusIcon, Loader2Icon, XIcon, ChevronUpIcon, ChevronDownIcon, CornerDownRightIcon, UserCog } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createJobAction, updateJobAction } from '@/lib/actions/jobs'
 import { useEffect } from 'react'
@@ -33,6 +33,7 @@ const jobSchema = z.object({
   description: z.string().optional(),
   customerId: z.string().min(1, 'Müşteri seçilmelidir'),
   teamId: z.string().optional().nullable(),
+  jobLeadId: z.string().optional().nullable(),
   status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
   acceptanceStatus: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']).optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
@@ -64,6 +65,7 @@ interface Team {
   id: string
   name: string
   lead?: { id: string; name: string | null } | null
+  members?: { user: { id: string; name: string | null } }[]
 }
 
 interface ChecklistStep {
@@ -111,7 +113,8 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
         title: job.title,
         description: job.description || '',
         customerId: job.customerId,
-        teamId: job.assignments?.[0]?.teamId || 'none', // Handle existing assignment
+        teamId: job.assignments?.[0]?.teamId || 'none',
+        jobLeadId: job.jobLeadId || 'none',
         priority: job.priority,
         status: job.status,
         acceptanceStatus: job.acceptanceStatus,
@@ -126,11 +129,12 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
 
   const customerId = watch('customerId')
   const teamId = watch('teamId')
+  const jobLeadId = watch('jobLeadId')
   const priority = watch('priority')
   const status = watch('status')
   const acceptanceStatus = watch('acceptanceStatus')
 
-  // Find selected team to show its lead
+  // Find selected team to show its members for lead selection
   const selectedTeam = teams.find(t => t.id === teamId)
 
   // Initialize steps if job provided
@@ -156,7 +160,8 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
       setValue('title', job.title)
       setValue('description', job.description || '')
       setValue('customerId', job.customerId)
-      setValue('teamId', job.assignments?.[0]?.teamId || (job.assignments?.[0]?.workerId ? 'none' : 'none'))
+      setValue('teamId', job.assignments?.[0]?.teamId || 'none')
+      setValue('jobLeadId', job.jobLeadId || 'none')
       setValue('priority', job.priority)
       setValue('status', job.status)
       setValue('acceptanceStatus', job.acceptanceStatus)
@@ -250,6 +255,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
         const updateData = {
           id: job.id,
           ...data,
+          jobLeadId: data.jobLeadId === 'none' ? null : data.jobLeadId,
           steps: validSteps.length > 0 ? validSteps : []
         }
         console.log('Sending update request to updateJobAction:', updateData)
@@ -336,7 +342,13 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
 
             <div className="space-y-2">
               <Label htmlFor="teamId">Atanacak Ekip</Label>
-              <Select value={teamId || 'none'} onValueChange={(val) => setValue('teamId', val === 'none' ? null : val)}>
+              <Select value={teamId || 'none'} onValueChange={(val) => {
+                setValue('teamId', val === 'none' ? null : val)
+                const newTeam = teams.find(t => t.id === val)
+                if (newTeam?.lead) {
+                  setValue('jobLeadId', newTeam.lead.id)
+                }
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Ekip seçiniz (Opsiyonel)" />
                 </SelectTrigger>
@@ -344,18 +356,44 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                   <SelectItem value="none">Henüz Atama Yapma</SelectItem>
                   {teams.map((team) => (
                     <SelectItem key={team.id} value={team.id}>
-                      {team.name} {team.lead ? `(Lider: ${team.lead.name})` : ''}
+                      {team.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {selectedTeam?.lead && (
-                <p className="text-[10px] text-indigo-600 font-medium ml-1">
-                  Ekip Lideri: {selectedTeam.lead.name}
-                </p>
-              )}
             </div>
           </div>
+
+          {/* İş Lideri Seçim Alanı */}
+          {teamId && teamId !== 'none' && (
+            <div className="space-y-2 p-3 bg-indigo-50/50 rounded-lg border border-indigo-100 animate-in fade-in slide-in-from-top-1">
+              <div className="flex items-center gap-2 mb-1">
+                <UserCog className="h-4 w-4 text-indigo-600" />
+                <Label htmlFor="jobLeadId" className="text-indigo-900 font-semibold text-sm">Bu İşten Sorumlu Lider</Label>
+              </div>
+              <Select value={jobLeadId || 'none'} onValueChange={(val) => setValue('jobLeadId', val === 'none' ? null : val)}>
+                <SelectTrigger className="bg-white border-indigo-200">
+                  <SelectValue placeholder="İş lideri seçiniz" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Lider Atama</SelectItem>
+                  {selectedTeam?.members?.map((m) => (
+                    <SelectItem key={m.user.id} value={m.user.id}>
+                      {m.user.name} {m.user.id === selectedTeam.lead?.id ? '(Varsayılan Lider)' : ''}
+                    </SelectItem>
+                  ))}
+                  {!selectedTeam?.members?.length && selectedTeam?.lead && (
+                    <SelectItem value={selectedTeam.lead.id}>
+                      {selectedTeam.lead.name} (Varsayılan Lider)
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-indigo-500 italic mt-1">
+                * Seçilen kişi bu işin takibinden ve onaylarından sorumlu olacaktır.
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-4 gap-4">
             <div className="space-y-2">
