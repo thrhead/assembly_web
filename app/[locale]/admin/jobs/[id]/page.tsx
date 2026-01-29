@@ -37,7 +37,10 @@ export default async function AdminJobDetailsPage(props: {
         }),
         prisma.team.findMany({
             where: { isActive: true },
-            select: { id: true, name: true }
+            include: { 
+                lead: { select: { id: true, name: true } },
+                members: { include: { user: { select: { id: true, name: true } } } }
+            }
         }),
         prisma.customer.findMany({
             include: { user: { select: { name: true } } }

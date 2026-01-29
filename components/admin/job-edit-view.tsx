@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
-import { Calendar as CalendarIcon, Save, Plus, X, Trash2, Edit2, Check, User, Briefcase, MapPin, Clock, Users } from "lucide-react"
+import { Calendar as CalendarIcon, Save, Plus, X, Trash2, Edit2, Check, User, Briefcase, MapPin, Clock, Users, UserCog } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -265,26 +265,46 @@ export function JobEditView({ job, workers, teams }: JobEditViewProps) {
                     <CardTitle className="text-xl font-bold">Ekip ve Atamalar</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         {job.assignments.map((assignment: any) => (
-                            <div key={assignment.id} className="flex items-center justify-between p-2 border rounded-lg bg-gray-50">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                        <Users className="h-4 w-4 text-blue-600" />
+                            <div key={assignment.id} className="space-y-4">
+                                <div className="flex items-center gap-3 p-3 bg-indigo-50/50 rounded-lg border border-indigo-100">
+                                    <Users className="h-5 w-5 text-indigo-600" />
+                                    <p className="font-bold text-indigo-900">{assignment.team ? assignment.team.name : assignment.worker?.name} Ekibi</p>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-4 ml-4">
+                                    {/* Ekip Lideri */}
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Ekip Lideri</p>
+                                        <div className="flex items-center gap-3 p-2 border rounded-lg bg-amber-50 border-amber-100 shadow-sm">
+                                            <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center">
+                                                <UserCog className="h-4 w-4 text-amber-600" />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-sm text-amber-900">{assignment.team?.lead?.name || 'Lider Atanmamış'}</p>
+                                                <p className="text-[10px] text-amber-600 font-medium">Sorumlu</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-medium">{assignment.team ? assignment.team.name : assignment.worker?.name}</p>
-                                        <p className="text-xs text-gray-500">{assignment.team ? 'Ekip' : 'Personel'}</p>
-                                        {assignment.team && assignment.team.members && assignment.team.members.length > 0 ? (
-                                            <div className="mt-1 text-sm text-gray-600">
-                                                <span className="font-semibold">Üyeler: </span>
-                                                {assignment.team.members.map((m: any) => m.user?.name || 'Bilinmiyor').join(', ')}
-                                            </div>
-                                        ) : assignment.team ? (
-                                            <div className="mt-1 text-sm text-red-500">
-                                                Bu ekipte üye bulunmuyor.
-                                            </div>
-                                        ) : null}
+
+                                    {/* Çalışanlar */}
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Çalışanlar</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {assignment.team?.members?.filter((m: any) => m.user.id !== assignment.team.lead?.id).length > 0 ? (
+                                                assignment.team.members
+                                                    .filter((m: any) => m.user.id !== assignment.team.lead?.id)
+                                                    .map((member: any, mIdx: number) => (
+                                                        <div key={mIdx} className="flex items-center gap-2 px-3 py-1.5 bg-white border rounded-full shadow-sm">
+                                                            <User className="h-3 w-3 text-gray-400" />
+                                                            <span className="text-xs font-medium text-gray-700">{member.user.name}</span>
+                                                        </div>
+                                                    ))
+                                            ) : (
+                                                <p className="text-xs text-gray-400 italic mt-2">Başka çalışan bulunmuyor.</p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

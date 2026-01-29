@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { MapPin, Save } from 'lucide-react'
+import { MapPin, Save, UserCog } from 'lucide-react'
 import { PDFDownloadButton } from '@/components/pdf-download-button'
 import { ExcelDownloadButton } from '@/components/excel-download-button'
 import { ProformaDownloadButton } from '@/components/proforma-download-button'
@@ -214,6 +214,10 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                                     <span className="font-medium">{job.status}</span>
                                 </div>
                                 <div className="flex justify-between">
+                                    <span className="text-gray-500">İş Lideri:</span>
+                                    <span className="font-bold text-amber-600">{job.jobLead?.name || 'Atanmamış'}</span>
+                                </div>
+                                <div className="flex justify-between">
                                     <span className="text-gray-500">Başlangıç:</span>
                                     <span className="font-medium" suppressHydrationWarning>
                                         {job.startedAt ? new Date(job.startedAt).toLocaleString('tr-TR') : '-'}
@@ -225,34 +229,39 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                                         {job.completedDate ? new Date(job.completedDate).toLocaleString('tr-TR') : '-'}
                                     </span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-500">Atanan:</span>
-                                    <div className="text-right">
-                                        {job.assignments && job.assignments.length > 0 ? (
-                                            job.assignments.map((a: any) => (
-                                                <div key={a.id} className="font-medium">
-                                                    {a.team ? (
-                                                        <div className="flex flex-col items-end">
-                                                            <span>{a.team.name}</span>
-                                                            {a.team.members && a.team.members.length > 0 ? (
-                                                                <span className="text-sm text-gray-600">
-                                                                    ({a.team.members.map((m: any) => m.user?.name || 'İsimsiz').join(', ')})
-                                                                </span>
-                                                            ) : (
-                                                                <span className="text-xs text-red-500">
-                                                                    (Üye yok)
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        a.worker?.name || 'Atanmamış'
-                                                    )}
+                                <div className="space-y-3 py-2 border-t mt-2">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Görevlendirme</span>
+                                    {job.assignments && job.assignments.length > 0 ? (
+                                        job.assignments.map((a: any) => (
+                                            <div key={a.id} className="space-y-3">
+                                                <div className="flex justify-between items-center text-xs">
+                                                    <span className="text-gray-500">Takım Lideri:</span>
+                                                    <span className="font-bold text-amber-600 flex items-center gap-1">
+                                                        <UserCog className="h-3 w-3" />
+                                                        {a.team?.lead?.name || 'Atanmamış'}
+                                                    </span>
                                                 </div>
-                                            ))
-                                        ) : (
-                                            <span className="font-medium">Atanmamış</span>
-                                        )}
-                                    </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-gray-500 text-xs">Çalışanlar:</span>
+                                                    <div className="flex flex-wrap gap-1 justify-end">
+                                                        {a.team?.members?.filter((m: any) => m.user.id !== a.team.lead?.id).length > 0 ? (
+                                                            a.team.members
+                                                                .filter((m: any) => m.user.id !== a.team.lead?.id)
+                                                                .map((m: any, idx: number) => (
+                                                                    <Badge key={idx} variant="outline" className="text-[10px] py-0 h-5 bg-white">
+                                                                        {m.user?.name || 'İsimsiz'}
+                                                                    </Badge>
+                                                                ))
+                                                        ) : (
+                                                            <span className="text-[10px] text-gray-400 italic">Diğer çalışan yok</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <span className="font-medium text-xs text-gray-400 italic">Atanmamış</span>
+                                    )}
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Öncelik:</span>
