@@ -206,6 +206,10 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                             </CardHeader>
                             <CardContent className="space-y-2 text-sm">
                                 <div className="flex justify-between">
+                                    <span className="text-gray-500">Proje No:</span>
+                                    <span className="font-bold text-orange-600">{job.jobNo || '-'}</span>
+                                </div>
+                                <div className="flex justify-between">
                                     <span className="text-gray-500">Durum:</span>
                                     <span className="font-medium">{job.status}</span>
                                 </div>

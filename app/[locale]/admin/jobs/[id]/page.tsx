@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "@/lib/navigation"
 import { prisma } from "@/lib/db"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { ArrowLeft } from "lucide-react"
 import { Link } from "@/lib/navigation"
 // import { AdminJobDetailsTabs } from "@/components/admin/job-details-tabs"
@@ -89,7 +90,12 @@ export default async function AdminJobDetailsPage(props: {
                         </Button>
                     </Link>
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">İş Detayları</h1>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-3xl font-bold text-gray-900">İş Detayları</h1>
+                            <Badge variant="outline" className="text-lg py-0 h-8 font-mono bg-orange-50 text-orange-700 border-orange-200">
+                                {job.jobNo || 'NO-CODE'}
+                            </Badge>
+                        </div>
                         <p className="text-gray-500">İşin ilerleme durumunu ve detaylarını görüntüleyin.</p>
                     </div>
                 </div>

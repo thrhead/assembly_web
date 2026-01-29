@@ -182,11 +182,14 @@ export default async function JobsPage(props: {
                         <BriefcaseIcon className="h-4 w-4" />
                       </div>
                       <div>
-                        <Link href={`/admin/jobs/${job.id}`} className="font-medium text-gray-900 hover:underline hover:text-blue-600 block">
+                        <div className="text-[10px] font-bold text-orange-600 uppercase tracking-wider mb-0.5">
+                          {job.jobNo || 'NO-CODE'}
+                        </div>
+                        <Link href={`/admin/jobs/${job.id}`} className="font-medium text-gray-900 hover:underline hover:text-blue-600 block leading-tight">
                           {job.title}
                         </Link>
                         {job.location && (
-                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                             <MapPinIcon className="h-3 w-3" />
                             <span className="truncate max-w-[150px]">{job.location}</span>
                           </div>

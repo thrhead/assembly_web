@@ -7,6 +7,7 @@ import { auth } from '@/lib/auth'
 import { sendJobNotification } from '@/lib/notification-helper'
 import { EventBus } from '@/lib/event-bus'
 import { sanitizeHtml, stripHtml } from '@/lib/security'
+import { generateJobNumber } from '@/lib/utils/job-number'
 
 const jobSchema = z.object({
   title: z.string().min(3, 'İş başlığı en az 3 karakter olmalıdır'),
@@ -72,10 +73,14 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
   }
 
   try {
+    // Benzersiz iş numarasını üretelim
+    const jobNo = await generateJobNumber();
+
     const job = await prisma.$transaction(async (tx) => {
       // 1. Create Job
       const newJob = await tx.job.create({
         data: {
+          jobNo: jobNo, // Numarayı atayalım
           title: stripHtml(validated.data.title),
           description: validated.data.description ? sanitizeHtml(validated.data.description) : null,
           customerId: validated.data.customerId,
