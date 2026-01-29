@@ -214,22 +214,24 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
       }
 
       // 3. Update Steps
-      const existingSteps = await tx.jobStep.findMany({
-        where: { jobId: id },
-        select: { id: true }
-      })
-      const existingStepIds = existingSteps.map(s => s.id)
-
-      const incomingStepIds = steps?.filter(s => s.id).map(s => s.id!) || []
-      const stepsToDelete = existingStepIds.filter(id => !incomingStepIds.includes(id))
-
-      if (stepsToDelete.length > 0) {
-        await tx.jobStep.deleteMany({
-          where: { id: { in: stepsToDelete } }
+      // Only modify steps if steps array is explicitly provided (not undefined/null)
+      // Note: JobDialog sends empty array [] if all steps are removed, so this works.
+      if (steps !== undefined && steps !== null) {
+        const existingSteps = await tx.jobStep.findMany({
+          where: { jobId: id },
+          select: { id: true }
         })
-      }
+        const existingStepIds = existingSteps.map(s => s.id)
 
-      if (steps && steps.length > 0) {
+        const incomingStepIds = steps.filter(s => s.id).map(s => s.id!)
+        const stepsToDelete = existingStepIds.filter(id => !incomingStepIds.includes(id))
+
+        if (stepsToDelete.length > 0) {
+          await tx.jobStep.deleteMany({
+            where: { id: { in: stepsToDelete } }
+          })
+        }
+
         for (let i = 0; i < steps.length; i++) {
           const stepData = steps[i]
           let stepId = stepData.id
@@ -286,6 +288,11 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
               }
             }
           } else {
+            // Only delete sub-steps if subSteps array is missing BUT steps were updated
+            // If steps were just created, this is fine. 
+            // If subSteps field is missing from payload, it implies no change? 
+            // But our schema defines it as optional.
+            // JobDialog sends subSteps: [] if empty.
             await tx.jobSubStep.deleteMany({ where: { stepId: stepId } })
           }
         }

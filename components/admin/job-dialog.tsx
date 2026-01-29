@@ -228,10 +228,17 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
     setIsLoading(true)
     console.log('JobDialog onSubmit triggered with data:', data)
     try {
+      // Explicitly map properties to ensure ID is preserved
       const validSteps = steps.filter(step => step.title && step.title.trim() !== '')
         .map(step => ({
-          ...step,
+          id: step.id,
+          title: step.title,
+          description: step.description,
           subSteps: step.subSteps?.filter(sub => sub.title && sub.title.trim() !== '')
+            .map(sub => ({
+              id: sub.id,
+              title: sub.title
+            })) || []
         }))
 
       if (job) {
