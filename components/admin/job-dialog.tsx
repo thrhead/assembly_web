@@ -63,6 +63,7 @@ interface Customer {
 interface Team {
   id: string
   name: string
+  lead?: { id: string; name: string | null } | null
 }
 
 interface ChecklistStep {
@@ -128,6 +129,9 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
   const priority = watch('priority')
   const status = watch('status')
   const acceptanceStatus = watch('acceptanceStatus')
+
+  // Find selected team to show its lead
+  const selectedTeam = teams.find(t => t.id === teamId)
 
   // Initialize steps if job provided
   useEffect(() => {
@@ -340,11 +344,16 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                   <SelectItem value="none">Henüz Atama Yapma</SelectItem>
                   {teams.map((team) => (
                     <SelectItem key={team.id} value={team.id}>
-                      {team.name}
+                      {team.name} {team.lead ? `(Lider: ${team.lead.name})` : ''}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {selectedTeam?.lead && (
+                <p className="text-[10px] text-indigo-600 font-medium ml-1">
+                  Ekip Lideri: {selectedTeam.lead.name}
+                </p>
+              )}
             </div>
           </div>
 

@@ -167,6 +167,7 @@ export async function getJob(id: string) {
           include: {
             team: {
               include: {
+                lead: true,
                 members: {
                   include: {
                     user: true

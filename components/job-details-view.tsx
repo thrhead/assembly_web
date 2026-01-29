@@ -29,8 +29,13 @@ interface JobDetailsProps {
             }
         }
         assignments: {
-            team: { name: string } | null
-            worker: { name: string | null } | null
+            team: {
+                id: string
+                name: string
+                lead?: { id: string; name: string | null } | null
+                members?: { user: { id: string; name: string | null } }[]
+            } | null
+            worker: { id: string; name: string | null } | null
         }[]
         steps: {
             id: string
@@ -182,14 +187,53 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                         <div>
                             <h3 className="text-sm font-medium text-gray-500 mb-2">Atanan Ekip / Personel</h3>
                             {job.assignments.length > 0 ? (
-                                <div className="space-y-2">
+                                <div className="space-y-4">
                                     {job.assignments.map((assignment, index) => (
-                                        <div key={index} className="flex items-center gap-3 p-2 bg-indigo-50/50 rounded border border-indigo-100 text-sm">
-                                            <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+                                        <div key={index} className="space-y-3">
                                             {assignment.team ? (
-                                                <span className="text-indigo-900">Ekip: <strong>{assignment.team.name}</strong></span>
+                                                <>
+                                                    <div className="flex items-center gap-3 p-2 bg-indigo-50/50 rounded border border-indigo-100 text-sm">
+                                                        <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+                                                        <span className="text-indigo-900">Ekip: <strong>{assignment.team.name}</strong></span>
+                                                    </div>
+                                                    
+                                                    {/* Ekip Lideri Gösterimi */}
+                                                    {assignment.team.lead && (
+                                                        <div className="ml-4 space-y-1">
+                                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Ekip Lideri</p>
+                                                            <div className="flex items-center gap-2 text-sm text-gray-700 bg-amber-50 p-2 rounded border border-amber-100">
+                                                                <User className="h-4 w-4 text-amber-600" />
+                                                                <span className="font-semibold">{assignment.team.lead.name}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Diğer Çalışanlar Gösterimi */}
+                                                    {assignment.team.members && assignment.team.members.length > 0 && (
+                                                        <div className="ml-4 space-y-1">
+                                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Çalışanlar</p>
+                                                            <div className="grid grid-cols-1 gap-1">
+                                                                {assignment.team.members
+                                                                    .filter(m => m.user.id !== assignment.team?.lead?.id)
+                                                                    .map((member, mIdx) => (
+                                                                        <div key={mIdx} className="flex items-center gap-2 text-sm text-gray-600 bg-white p-1.5 rounded border border-gray-100 shadow-sm">
+                                                                            <User className="h-3.5 w-3.5 text-gray-400" />
+                                                                            <span>{member.user.name}</span>
+                                                                        </div>
+                                                                    ))
+                                                                }
+                                                                {assignment.team.members.filter(m => m.user.id !== assignment.team?.lead?.id).length === 0 && (
+                                                                    <p className="text-xs text-gray-400 italic">Başka çalışan bulunmuyor.</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </>
                                             ) : (
-                                                <span className="text-indigo-900">Personel: <strong>{assignment.worker?.name}</strong></span>
+                                                <div className="flex items-center gap-3 p-2 bg-blue-50/50 rounded border border-blue-100 text-sm">
+                                                    <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                                                    <span className="text-blue-900">Personel: <strong>{assignment.worker?.name}</strong></span>
+                                                </div>
                                             )}
                                         </div>
                                     ))}
