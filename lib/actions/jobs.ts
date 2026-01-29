@@ -222,13 +222,17 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
       // Only modify steps if steps array is explicitly provided (not undefined/null)
       // Note: JobDialog sends empty array [] if all steps are removed, so this works.
       if (steps !== undefined && steps !== null) {
+        // Fetch existing steps to identify what needs to be deleted
         const existingSteps = await tx.jobStep.findMany({
           where: { jobId: id },
           select: { id: true }
         })
         const existingStepIds = existingSteps.map(s => s.id)
 
+        // Identify steps to keep or update
         const incomingStepIds = steps.filter(s => s.id).map(s => s.id!)
+        
+        // Only delete steps that are NOT in the incoming list
         const stepsToDelete = existingStepIds.filter(id => !incomingStepIds.includes(id))
 
         if (stepsToDelete.length > 0) {
@@ -242,6 +246,7 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
           let stepId = stepData.id
 
           if (stepId) {
+            // Update existing step - Preserve isCompleted status unless explicitly managed elsewhere
             await tx.jobStep.update({
               where: { id: stepId },
               data: {
@@ -251,6 +256,7 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
               }
             })
           } else {
+            // Create new step
             const newStep = await tx.jobStep.create({
               data: {
                 jobId: id,
@@ -262,13 +268,17 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
             stepId = newStep.id
           }
 
+          // Handle SubSteps
           if (stepData.subSteps) {
+            // Fetch existing substeps for THIS step to manage deletions properly
             const existingSubSteps = await tx.jobSubStep.findMany({
               where: { stepId: stepId },
               select: { id: true }
             })
             const existingSubStepIds = existingSubSteps.map(s => s.id)
             const incomingSubStepIds = stepData.subSteps.filter(s => s.id).map(s => s.id!)
+            
+            // Delete only substeps that are missing from the update payload
             const subStepsToDelete = existingSubStepIds.filter(sid => !incomingSubStepIds.includes(sid))
 
             if (subStepsToDelete.length > 0) {
@@ -278,11 +288,13 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
             for (let j = 0; j < stepData.subSteps.length; j++) {
               const subData = stepData.subSteps[j]
               if (subData.id) {
+                // Update existing substep
                 await tx.jobSubStep.update({
                   where: { id: subData.id },
                   data: { title: stripHtml(subData.title), order: j + 1 }
                 })
               } else {
+                // Create new substep
                 await tx.jobSubStep.create({
                   data: {
                     stepId: stepId!,
@@ -293,12 +305,11 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
               }
             }
           } else {
-            // Only delete sub-steps if subSteps array is missing BUT steps were updated
-            // If steps were just created, this is fine. 
-            // If subSteps field is missing from payload, it implies no change? 
-            // But our schema defines it as optional.
-            // JobDialog sends subSteps: [] if empty.
-            await tx.jobSubStep.deleteMany({ where: { stepId: stepId } })
+            // If subSteps is NOT provided (undefined/null), DO NOT DELETE existing substeps.
+            // Only delete if it's an empty array [].
+            if (Array.isArray(stepData.subSteps)) {
+               await tx.jobSubStep.deleteMany({ where: { stepId: stepId } })
+            }
           }
         }
       }
