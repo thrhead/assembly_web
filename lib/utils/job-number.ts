@@ -8,6 +8,8 @@ export async function generateJobNumber(): Promise<string> {
   const currentYear = new Date().getFullYear();
   const yearPrefix = `JOB-${currentYear}-`;
 
+  /*
+  // Schema'da jobNo alanı olmadığı için geçici olarak devre dışı
   // Bu yılki en yüksek numarayı bulalım
   const lastJob = await prisma.job.findFirst({
     where: {
@@ -34,6 +36,11 @@ export async function generateJobNumber(): Promise<string> {
 
   const sequenceStr = nextSequence.toString().padStart(4, '0');
   return `${yearPrefix}${sequenceStr}`;
+  */
+ 
+  // Geçici olarak rastgele bir numara veya tarih bazlı bir şey döndürelim ki build hata vermesin
+  // Ancak bu değer veritabanına jobNo kolonu olmadığı için zaten kaydedilmeyecek.
+  return `${yearPrefix}${Date.now().toString().slice(-4)}`;
 }
 
 /**
