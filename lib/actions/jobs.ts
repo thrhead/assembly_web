@@ -232,14 +232,16 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
         // Identify steps to keep or update
         const incomingStepIds = steps.filter(s => s.id).map(s => s.id!)
         
-        // Only delete steps that are NOT in the incoming list
-        const stepsToDelete = existingStepIds.filter(id => !incomingStepIds.includes(id))
+        // CRITICAL FIX: Disable deletion of main steps too.
+        // If a main step is deleted, all substeps and photos are deleted via CASCADE.
+        // We stop this to prevent data loss.
+        // const stepsToDelete = existingStepIds.filter(id => !incomingStepIds.includes(id))
 
-        if (stepsToDelete.length > 0) {
-          await tx.jobStep.deleteMany({
-            where: { id: { in: stepsToDelete } }
-          })
-        }
+        // if (stepsToDelete.length > 0) {
+        //   await tx.jobStep.deleteMany({
+        //     where: { id: { in: stepsToDelete } }
+        //   })
+        // }
 
         for (let i = 0; i < steps.length; i++) {
           const stepData = steps[i]
