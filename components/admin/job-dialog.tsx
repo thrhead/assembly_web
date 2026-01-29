@@ -228,10 +228,10 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
     setIsLoading(true)
     console.log('JobDialog onSubmit triggered with data:', data)
     try {
-      const validSteps = steps.filter(step => step.title.trim() !== '')
+      const validSteps = steps.filter(step => step.title && step.title.trim() !== '')
         .map(step => ({
           ...step,
-          subSteps: step.subSteps?.filter(sub => sub.title.trim() !== '')
+          subSteps: step.subSteps?.filter(sub => sub.title && sub.title.trim() !== '')
         }))
 
       if (job) {
