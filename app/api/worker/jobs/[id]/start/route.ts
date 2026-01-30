@@ -23,9 +23,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         }
 
         const conflict = await checkConflict(request, job.updatedAt);
-        if (conflict) return conflict;
+        if (conflict) {
+            const clientVersion = request.headers.get('X-Client-Version');
+            console.warn(`[JOB START] Conflict detected for job ${id}. Server: ${job.updatedAt}, Client: ${clientVersion}`);
+            return conflict;
+        }
 
         if (job.status !== 'PENDING') {
+            if (job.status === 'IN_PROGRESS') {
+                console.log(`[JOB START] Job ${id} is already IN_PROGRESS, returning success.`);
+                return NextResponse.json(job);
+            }
             return NextResponse.json({ error: 'Job already started or completed' }, { status: 400 });
         }
 

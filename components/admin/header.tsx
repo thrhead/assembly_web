@@ -1,6 +1,6 @@
 'use client'
 
-import { BellIcon, LogOutIcon, MenuIcon } from 'lucide-react'
+import { LogOutIcon, MenuIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -11,38 +11,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { signOut } from 'next-auth/react'
-
-import { useState, useEffect } from 'react'
 import { useRouter } from '@/lib/navigation'
+import { NotificationDropdown } from '@/components/notifications/notification-dropdown'
 
 interface AdminHeaderProps {
   onMenuClick?: () => void
 }
 
 export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
-  const [unreadCount, setUnreadCount] = useState(0)
   const router = useRouter()
 
-  useEffect(() => {
-    fetchNotifications()
-    // Poll every minute
-    const interval = setInterval(fetchNotifications, 60000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const fetchNotifications = async () => {
-    try {
-      const res = await fetch('/api/notifications')
-      if (res.ok) {
-        const data = await res.json()
-        const unread = data.filter((n: any) => !n.isRead).length
-        console.log('AdminHeader: Fetched notifications', { total: data.length, unread })
-        setUnreadCount(unread)
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error)
-    }
-  }
   return (
     <div className="h-16 border-b bg-white flex items-center justify-between px-4 sticky top-0 z-40">
       <div className="flex items-center gap-3">
@@ -56,18 +34,7 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="relative text-gray-600 hover:bg-gray-100" 
-          onClick={() => router.push('/admin/notifications')}
-          aria-label={`${unreadCount > 0 ? unreadCount + ' okunmamış ' : ''}Bildirimler`}
-        >
-          <BellIcon className="h-6 w-6" />
-          {unreadCount > 0 && (
-            <span className="absolute top-2 right-2 h-2.5 w-2.5 bg-red-600 rounded-full ring-2 ring-white" />
-          )}
-        </Button>
+        <NotificationDropdown />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

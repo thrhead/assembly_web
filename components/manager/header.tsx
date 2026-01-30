@@ -1,6 +1,6 @@
 'use client'
 
-import { BellIcon, LogOutIcon, MenuIcon } from 'lucide-react'
+import { LogOutIcon, MenuIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { signOut } from 'next-auth/react'
 import { useRouter } from '@/lib/navigation'
+import { NotificationDropdown } from '@/components/notifications/notification-dropdown'
 
 interface ManagerHeaderProps {
     onMenuClick?: () => void
@@ -32,10 +33,7 @@ export function ManagerHeader({ onMenuClick }: ManagerHeaderProps) {
             </div>
 
             <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="relative">
-                    <BellIcon className="h-5 w-5 text-gray-500" />
-                    <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full" />
-                </Button>
+                <NotificationDropdown />
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
