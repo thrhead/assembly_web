@@ -12,6 +12,7 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
+    "db:sync": "prisma generate && prisma db push",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },

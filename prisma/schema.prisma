@@ -8,6 +8,20 @@ datasource db {
   url       = env("DATABASE_URL")
 }
 
+enum LogLevel {
+  INFO
+  WARN
+  ERROR
+  AUDIT
+}
+
+enum LogSource {
+  CLIENT
+  SERVER
+  DATABASE
+  EXTERNAL
+}
+
 model User {
   id                 String          @id @default(cuid())
   name               String?
@@ -40,6 +54,7 @@ model User {
   sentMessages       Message[]       @relation("MessageSender")
   receivedMessages   Message[]       @relation("MessageReceiver")
   apiKeys            ApiKey[]
+  systemLogs         SystemLog[]
 
   @@map("users")
 }
@@ -401,4 +416,19 @@ model WebhookLog {
   webhook       Webhook   @relation(fields: [webhookId], references: [id], onDelete: Cascade)
 
   @@map("webhook_logs")
+}
+
+model SystemLog {
+  id        String    @id @default(cuid())
+  level     LogLevel
+  message   String
+  source    LogSource
+  meta      Json?     // Hata nesneleri, yığın izleri (stack traces), cihaz bilgisi vb. için
+  userId    String?
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime  @default(now())
+
+  @@index([level, createdAt])
+  @@index([source, createdAt])
+  @@map("system_logs")
 }
