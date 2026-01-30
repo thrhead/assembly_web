@@ -30,6 +30,7 @@ import { useEffect } from 'react'
 
 const jobSchema = z.object({
   title: z.string().min(3, 'İş başlığı en az 3 karakter olmalıdır'),
+  projectNo: z.string().optional().nullable(),
   description: z.string().optional(),
   customerId: z.string().min(1, 'Müşteri seçilmelidir'),
   teamId: z.string().optional().nullable(),
@@ -111,6 +112,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
       acceptanceStatus: 'PENDING',
       ...job && {
         title: job.title,
+        projectNo: job.projectNo || '',
         description: job.description || '',
         customerId: job.customerId,
         teamId: job.assignments?.[0]?.teamId || 'none',
@@ -158,6 +160,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
   useEffect(() => {
     if (job) {
       setValue('title', job.title)
+      setValue('projectNo', job.projectNo || '')
       setValue('description', job.description || '')
       setValue('customerId', job.customerId)
       setValue('teamId', job.assignments?.[0]?.teamId || 'none')
@@ -259,10 +262,10 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
           steps: validSteps.length > 0 ? validSteps : []
         }
         console.log('Sending update request to updateJobAction:', updateData)
-        
+
         const result = await updateJobAction(updateData)
         console.log('Update result:', result)
-        
+
         toast.success('İş başarıyla güncellendi')
       } else {
         console.log('Creating new job')
@@ -273,13 +276,13 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
           }
         })
         formData.append('steps', JSON.stringify(validSteps))
-        
+
         const result = await createJobAction({ success: false }, formData)
-        
+
         if (result.error) {
           throw new Error(result.error)
         }
-        
+
         toast.success('İş başarıyla oluşturuldu')
       }
 
@@ -312,12 +315,18 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
           <DialogTitle>{job ? 'İş Düzenle' : 'Yeni İş Oluştur'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">İş Başlığı</Label>
-            <Input id="title" {...register('title')} placeholder="Örn: Klima Montajı - A Blok" />
-            {errors.title && (
-              <p className="text-sm text-red-500">{errors.title.message}</p>
-            )}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="col-span-2 space-y-2">
+              <Label htmlFor="title">İş Başlığı</Label>
+              <Input id="title" {...register('title')} placeholder="Örn: Klima Montajı - A Blok" />
+              {errors.title && (
+                <p className="text-sm text-red-500">{errors.title.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="projectNo">Proje No</Label>
+              <Input id="projectNo" {...register('projectNo')} placeholder="Örn: PRJ-001" />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

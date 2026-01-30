@@ -11,6 +11,7 @@ import { generateJobNumber } from '@/lib/utils/job-number'
 
 const jobSchema = z.object({
   title: z.string().min(3, 'İş başlığı en az 3 karakter olmalıdır'),
+  projectNo: z.string().optional().nullable(),
   description: z.string().optional(),
   customerId: z.string().min(1, 'Müşteri seçilmelidir'),
   teamId: z.string().optional().nullable(),
@@ -54,6 +55,7 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
 
   const rawData = {
     title: formData.get('title'),
+    projectNo: formData.get('projectNo'),
     description: formData.get('description'),
     customerId: formData.get('customerId'),
     teamId: formData.get('teamId'),
@@ -83,6 +85,7 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
       const newJob = await tx.job.create({
         data: {
           jobNo: jobNo,
+          projectNo: validated.data.projectNo ? stripHtml(validated.data.projectNo) : null,
           title: stripHtml(validated.data.title),
           description: validated.data.description ? sanitizeHtml(validated.data.description) : null,
           customerId: validated.data.customerId,
@@ -169,6 +172,7 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
     workerId,
     jobLeadId, // Yeni alan
     priority,
+    projectNo,
     status,
     acceptanceStatus,
     location,
@@ -194,6 +198,7 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
           title: title ? stripHtml(title) : undefined,
           description: (description !== undefined) ? (description ? sanitizeHtml(description) : null) : undefined,
           customerId: customerId,
+          projectNo: projectNo ? stripHtml(projectNo) : null,
           jobLeadId: jobLeadId || null, // Atama
           priority: priority,
           status: status || undefined,

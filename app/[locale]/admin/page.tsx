@@ -49,14 +49,6 @@ export default async function AdminDashboard() {
             <h1 className="text-2xl font-bold text-foreground">{session?.user?.name || 'Admin Kullanıcı'}</h1>
           </div>
         </div>
-        <Link href="/admin/notifications" className="p-3 bg-secondary rounded-full relative hover:bg-secondary/80 transition-colors">
-          <BellIcon className="w-6 h-6 text-foreground" />
-          {pendingApprovalsCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full border-2 border-card flex items-center justify-center text-[10px] font-bold">
-              {pendingApprovalsCount}
-            </span>
-          )}
-        </Link>
       </div>
 
       {/* Performance Chart */}

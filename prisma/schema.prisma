@@ -90,6 +90,7 @@ model TeamMember {
 model Job {
   id               String          @id @default(cuid())
   jobNo            String?         @unique // Örn: TR-2024-0001
+  projectNo        String?         // Proje Numarası
   title            String
   description      String?
   customerId       String
