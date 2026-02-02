@@ -266,3 +266,32 @@ export async function getTeamDetailedReports(teamId: string) {
         }
     };
 }
+
+export async function getAllTeamsReports() {
+    const teams = await prisma.team.findMany({
+        where: { isActive: true },
+        select: { id: true, name: true, lead: { select: { name: true } }, _count: { select: { members: true } } }
+    });
+
+    const reports = await Promise.all(teams.map(async (team) => {
+        const details = await getTeamDetailedReports(team.id);
+        return {
+            id: team.id,
+            name: team.name,
+            leadName: team.lead?.name || 'Atanmamış',
+            memberCount: team._count.members,
+            stats: details.stats
+        };
+    }));
+
+    // Calculate Global Stats
+    const globalStats = {
+        totalTeams: teams.length,
+        totalEmployees: reports.reduce((sum, r) => sum + r.memberCount, 0),
+        totalJobsCompleted: reports.reduce((sum, r) => sum + r.stats.completedJobs, 0),
+        totalExpenses: reports.reduce((sum, r) => sum + r.stats.totalExpenses, 0),
+        avgEfficiency: reports.length > 0 ? Math.round(reports.reduce((sum, r) => sum + r.stats.efficiencyScore, 0) / reports.length) : 0
+    };
+
+    return { reports, globalStats };
+}
