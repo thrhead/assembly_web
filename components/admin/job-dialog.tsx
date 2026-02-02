@@ -43,6 +43,8 @@ const jobSchema = z.object({
   scheduledEndDate: z.string().optional(),
   startedAt: z.string().optional(),
   completedDate: z.string().optional(),
+  budget: z.number().optional().nullable(),
+  estimatedDuration: z.number().optional().nullable(),
   steps: z.array(z.object({
     id: z.string().optional(),
     title: z.string(),
@@ -125,6 +127,8 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
         scheduledEndDate: job.scheduledEndDate ? new Date(job.scheduledEndDate).toISOString().slice(0, 16) : '',
         startedAt: job.startedAt ? new Date(job.startedAt).toISOString().slice(0, 16) : '',
         completedDate: job.completedDate ? new Date(job.completedDate).toISOString().slice(0, 16) : '',
+        budget: job.budget,
+        estimatedDuration: job.estimatedDuration,
       }
     }
   })
@@ -173,6 +177,10 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
       setValue('scheduledEndDate', job.scheduledEndDate ? new Date(job.scheduledEndDate).toISOString().slice(0, 16) : '')
       setValue('startedAt', job.startedAt ? new Date(job.startedAt).toISOString().slice(0, 16) : '')
       setValue('completedDate', job.completedDate ? new Date(job.completedDate).toISOString().slice(0, 16) : '')
+      setValue('startedAt', job.startedAt ? new Date(job.startedAt).toISOString().slice(0, 16) : '')
+      setValue('completedDate', job.completedDate ? new Date(job.completedDate).toISOString().slice(0, 16) : '')
+      setValue('budget', job.budget)
+      setValue('estimatedDuration', job.estimatedDuration)
     }
   }, [job, setValue])
 
@@ -471,6 +479,31 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
             </div>
 
             <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Maliyet & Süre Tahmini</h3>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label htmlFor="budget" className="text-xs">Bütçe (TL)</Label>
+                  <Input
+                    id="budget"
+                    type="number"
+                    step="0.01"
+                    {...register('budget', { valueAsNumber: true })}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="estimatedDuration" className="text-xs">Süre (Dk)</Label>
+                  <Input
+                    id="estimatedDuration"
+                    type="number"
+                    {...register('estimatedDuration', { valueAsNumber: true })}
+                    placeholder="Dakika"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Gerçekleşen Tarihler</h3>
               <div className="grid grid-cols-1 gap-2">
                 <div className="space-y-1">
@@ -479,6 +512,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="completedDate" className="text-xs">Gerçek Bitiş</Label>
+
                   <Input id="completedDate" type="datetime-local" {...register('completedDate')} />
                 </div>
               </div>

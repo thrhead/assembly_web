@@ -103,6 +103,8 @@ model Job {
   longitude        Float?
   scheduledDate    DateTime?
   scheduledEndDate DateTime?
+  budget           Float?          // Tahmini Bütçe
+  estimatedDuration Int?           // Tahmini Süre (Dakika)
   startedAt        DateTime?
   completedDate    DateTime?
   signatureUrl     String?

@@ -21,7 +21,17 @@ const jobSchema = z.object({
   location: z.string().optional(),
   scheduledDate: z.string().optional(), // ISO date string
   scheduledEndDate: z.string().optional(), // ISO date string
+  budget: z.number().optional().nullable(), // Yeni alan
+  estimatedDuration: z.number().optional().nullable(), // Yeni alan
   steps: z.array(z.object({
+    id: z.string().optional(),
+    title: z.string(),
+    description: z.string().optional(),
+    subSteps: z.array(z.object({
+      id: z.string().optional(),
+      title: z.string()
+    })).optional()
+
     id: z.string().optional(),
     title: z.string(),
     description: z.string().optional(),
@@ -65,6 +75,10 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
     location: formData.get('location'),
     scheduledDate: formData.get('scheduledDate'),
     scheduledEndDate: formData.get('scheduledEndDate'),
+    budget: formData.get('budget') ? parseFloat(formData.get('budget') as string) : null,
+    estimatedDuration: formData.get('estimatedDuration') ? parseInt(formData.get('estimatedDuration') as string) : null,
+    scheduledDate: formData.get('scheduledDate'),
+    scheduledEndDate: formData.get('scheduledEndDate'),
     steps: JSON.parse(formData.get('steps') as string || '[]')
   }
 
@@ -95,6 +109,8 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
           location: validated.data.location ? stripHtml(validated.data.location) : null,
           scheduledDate: validated.data.scheduledDate ? new Date(validated.data.scheduledDate) : null,
           scheduledEndDate: validated.data.scheduledEndDate ? new Date(validated.data.scheduledEndDate) : null,
+          budget: validated.data.budget,
+          estimatedDuration: validated.data.estimatedDuration,
           creatorId: session.user.id,
         }
       })
@@ -181,6 +197,8 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
     scheduledEndDate,
     startedAt,
     completedDate,
+    budget,
+    estimatedDuration,
     steps
   } = validated.data
 
@@ -209,6 +227,8 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
           scheduledEndDate: parseDate(scheduledEndDate),
           startedAt: parseDate(startedAt),
           completedDate: parseDate(completedDate),
+          budget: budget,
+          estimatedDuration: estimatedDuration,
         }
       })
 

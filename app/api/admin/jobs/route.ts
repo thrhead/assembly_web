@@ -132,7 +132,7 @@ export async function GET(req: Request) {
         return NextResponse.json(JSON.parse(JSON.stringify(formattedJobs)))
     } catch (error: any) {
         console.error('CRITICAL: API GET Crash:', error.message, error.stack);
-        return NextResponse.json([], { status: 200 }); 
+        return NextResponse.json([], { status: 200 });
     }
 }
 
@@ -168,6 +168,8 @@ export async function POST(req: Request) {
                 priority: data.priority,
                 location: data.location ? stripHtml(data.location) : null,
                 scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : null,
+                budget: data.budget,
+                estimatedDuration: data.estimatedDuration,
                 status: 'PENDING',
                 steps: data.steps
                     ? {

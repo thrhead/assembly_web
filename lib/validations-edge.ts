@@ -56,15 +56,17 @@ export const jobCreationSchema = z.object({
     priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
     location: z.string().optional(),
     scheduledDate: z.string().min(1, 'Scheduled date is required'),
+    budget: z.number().optional().nullable(),
+    estimatedDuration: z.number().optional().nullable(), // Dakika cinsinden
     steps: z.array(z.object({
-      title: z.string().min(1, 'Step title is required'),
-      description: z.string().optional(),
-      order: z.number().optional(),
-      subSteps: z.array(z.object({
-        title: z.string().min(1, 'Sub-step title is required'),
+        title: z.string().min(1, 'Step title is required'),
         description: z.string().optional(),
-        order: z.number().optional()
-      })).optional()
+        order: z.number().optional(),
+        subSteps: z.array(z.object({
+            title: z.string().min(1, 'Sub-step title is required'),
+            description: z.string().optional(),
+            order: z.number().optional()
+        })).optional()
     })).optional().nullable()
 })
 
