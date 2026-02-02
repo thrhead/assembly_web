@@ -78,7 +78,8 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
 
   try {
     // Benzersiz iş numarasını üretelim
-    const jobNo = await generateJobNumber();
+    const cleanedProjectNo = validated.data.projectNo ? stripHtml(validated.data.projectNo) : null;
+    const jobNo = await generateJobNumber(cleanedProjectNo);
 
     const job = await prisma.$transaction(async (tx) => {
       // 1. Create Job

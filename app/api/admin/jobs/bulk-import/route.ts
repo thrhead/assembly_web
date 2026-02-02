@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { NextResponse } from "next/server"
 import * as XLSX from "xlsx"
+import { generateJobNumber } from "@/lib/utils/job-number"
 
 export async function POST(req: Request) {
     try {
@@ -64,10 +65,16 @@ export async function POST(req: Request) {
                         throw new Error(`'${companyName}' isimli müşteri bulunamadı. Lütfen önce müşteriyi oluşturun.`)
                     }
 
+
+
                     // 2. Create Job
                     // Basic fields from the first row
                     const description = rows[0]["Description"] || rows[0]["Açıklama"]
                     const priority = (rows[0]["Priority"] || rows[0]["Öncelik"] || "MEDIUM").toUpperCase()
+                    const projectNo = rows[0]["Project No"] || rows[0]["Proje No"] || null
+
+                    // Generate Job Number (Project based or Global)
+                    const jobNo = await generateJobNumber(projectNo)
 
                     let scheduledDate = new Date()
                     if (rows[0]["Date"] || rows[0]["Tarih"]) {
@@ -82,6 +89,8 @@ export async function POST(req: Request) {
 
                     const job = await tx.job.create({
                         data: {
+                            jobNo: jobNo,
+                            projectNo: projectNo,
                             title: title,
                             description: description,
                             customerId: customer.id,
