@@ -5,11 +5,12 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    dedupe: ['react', 'react-dom'],
     alias: {
       '@': path.resolve(__dirname, './'),
       'next/navigation': 'next/navigation.js',
+      // Force ROOT versions for both to ensure they match (since react-dom seems to stick to root)
       'react': path.resolve(__dirname, '../../node_modules/react'),
+      'react-dom/client': path.resolve(__dirname, '../../node_modules/react-dom/client.js'),
       'react-dom': path.resolve(__dirname, '../../node_modules/react-dom'),
     },
   },
