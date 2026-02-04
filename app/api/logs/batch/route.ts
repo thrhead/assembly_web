@@ -4,15 +4,19 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 
 const logSchema = z.object({
-  level: z.enum(["DEBUG", "INFO", "WARN", "ERROR", "AUDIT"]),
+  level: z.string(), // Use string to be more flexible, will validate in mapping
   message: z.string(),
   context: z.any().optional(),
-  stack: z.string().optional(),
-  platform: z.enum(["web", "mobile", "server"]),
+  stack: z.string().optional().nullable(),
+  platform: z.string().optional().nullable(),
   createdAt: z
-    .string()
+    .any()
     .optional()
-    .transform((val) => (val ? new Date(val) : new Date())),
+    .transform((val) => {
+        if (!val) return new Date();
+        const d = new Date(val);
+        return isNaN(d.getTime()) ? new Date() : d;
+    }),
 });
 
 const batchSchema = z.array(logSchema);
@@ -22,34 +26,38 @@ export async function POST(req: Request) {
     const session = await auth();
 
     const body = await req.json();
-    const logs = batchSchema.parse(body);
+    const parsed = batchSchema.safeParse(body);
 
-    // Associate logs with the current user if authenticated
-    // AND map fields to match the Prisma model (context/stack -> meta)
+    if (!parsed.success) {
+        return NextResponse.json({ error: parsed.error.format() }, { status: 400 });
+    }
+
+    const logs = parsed.data;
+
+    // Map fields to match the Prisma model exactly
     const logsToCreate = logs.map((log) => ({
-      level: log.level,
-      message: log.message,
-      platform: log.platform,
+      level: ['DEBUG', 'INFO', 'WARN', 'ERROR', 'AUDIT'].includes(log.level) ? log.level : 'INFO',
+      message: log.message || 'No message',
+      platform: (log.platform as string) || 'web',
       createdAt: log.createdAt,
       userId: session?.user?.id || null,
-      meta:
-        log.context || log.stack
+      meta: (log.context || log.stack) 
           ? {
               context: log.context || null,
               stack: log.stack || null,
             }
-          : undefined,
+          : null, // Use null instead of undefined for DB safety
     }));
 
-    await prisma.systemLog.createMany({
-      data: logsToCreate,
-    });
-
-    return NextResponse.json({ success: true, count: logs.length }, { status: 201 });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.issues }, { status: 400 });
+    if (logsToCreate.length > 0) {
+        await prisma.systemLog.createMany({
+            data: logsToCreate,
+            skipDuplicates: true
+        });
     }
+
+    return NextResponse.json({ success: true, count: logsToCreate.length }, { status: 201 });
+  } catch (error) {
     console.error("Log batch sync error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

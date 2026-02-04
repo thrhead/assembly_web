@@ -1,5 +1,4 @@
 import { offlineDB, LocalLog } from './offline-db'
-import { prisma } from './db'
 
 export const LogLevel = {
     DEBUG: 'DEBUG',
@@ -43,7 +42,6 @@ class Logger {
 
     async log(level: string, message: string, context?: any, stack?: string) {
         try {
-            const platform = typeof window !== 'undefined' ? 'web' : 'server';
             const timestamp = new Date();
 
             if (typeof window !== 'undefined') {
@@ -66,10 +64,12 @@ class Logger {
                     this.sync()
                 }
             } else {
-                // Server-side logging - Direct DB write
+                // Server-side logging - Dynamic import to avoid breaking client bundle
                 console.log(`[Server Logger] [${level}] ${message}`)
                 
                 try {
+                    // We import prisma only when needed on server
+                    const { prisma } = require('./db');
                     await prisma.systemLog.create({
                         data: {
                             level,
@@ -83,7 +83,6 @@ class Logger {
                         }
                     });
                 } catch (dbError) {
-                    // Avoid infinite loops if DB write fails
                     console.error('CRITICAL: Could not persist server log to DB:', dbError);
                 }
             }
@@ -110,7 +109,6 @@ class Logger {
                 return
             }
 
-            // Map to remove Dexie IDs before sending
             const logsToSend = logs.map(({ id, ...rest }) => rest)
 
             const response = await fetch('/api/logs/batch', {
@@ -120,12 +118,8 @@ class Logger {
             })
 
             if (response.ok) {
-                // Clear the logs we just sent
                 const ids = logs.map(l => l.id as number)
                 await offlineDB.systemLogs.bulkDelete(ids)
-                if (process.env.NODE_ENV === 'development') {
-                    console.log(`[Logger] Successfully synced ${logs.length} logs.`)
-                }
             } else {
                  console.error('[Logger] Sync failed with status:', response.status)
             }
