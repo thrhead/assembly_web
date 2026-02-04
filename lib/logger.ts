@@ -64,26 +64,29 @@ class Logger {
                     this.sync()
                 }
             } else {
-                // Server-side logging - Dynamic import to avoid breaking client bundle
+                // Server-side logging - Direct DB write using internal helper
                 console.log(`[Server Logger] [${level}] ${message}`)
                 
                 try {
-                    // We import prisma only when needed on server
-                    const { prisma } = require('./db');
-                    await prisma.systemLog.create({
-                        data: {
-                            level,
-                            message,
-                            platform: 'server',
-                            createdAt: timestamp,
-                            meta: context || stack ? {
-                                context: context || null,
-                                stack: stack || null
-                            } : undefined
-                        }
-                    });
+                    // Using a dynamic import that is safe for Next.js server-side
+                    const { prisma } = await import('./db');
+                    if (prisma) {
+                        await prisma.systemLog.create({
+                            data: {
+                                level,
+                                message,
+                                platform: 'server',
+                                createdAt: timestamp,
+                                meta: (context || stack) ? {
+                                    context: context || null,
+                                    stack: stack || null
+                                } : undefined
+                            }
+                        });
+                    }
                 } catch (dbError) {
-                    console.error('CRITICAL: Could not persist server log to DB:', dbError);
+                    // Do not log the dbError itself using the logger to avoid infinite loops
+                    console.error('CRITICAL: Server log persistence failed:', message, dbError);
                 }
             }
         } catch (error) {
