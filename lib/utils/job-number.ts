@@ -1,47 +1,14 @@
 import { prisma } from "@/lib/db";
 
 /**
- * Yeni bir iş için benzersiz bir proje numarası üretir.
- * Format: JOB-YYYY-XXXX (Örn: JOB-2024-0001)
+ * Yeni bir iş (Job) için benzersiz ve sıralı bir numara üretir.
+ * Format: AS-YYYY-XXXX (Örn: AS-2026-0001)
  */
-export async function generateJobNumber(projectNo?: string | null): Promise<string> {
-  // 1. Eğer proje numarası varsa, Proje bazlı WO üret (PRJ-XXX-WO-01)
-  if (projectNo) {
-    const jobs = await prisma.job.findMany({
-      where: {
-        projectNo: projectNo,
-        jobNo: {
-          contains: '-WO-'
-        }
-      },
-      select: {
-        jobNo: true
-      }
-    });
-
-    let maxSequence = 0;
-    const woRegex = /-WO-(\d+)$/;
-
-    jobs.forEach(job => {
-      if (job.jobNo) {
-        const match = job.jobNo.match(woRegex);
-        if (match && match[1]) {
-          const seq = parseInt(match[1], 10);
-          if (seq > maxSequence) maxSequence = seq;
-        }
-      }
-    });
-
-    const nextSequence = maxSequence + 1;
-    // WO-01, WO-02... şeklinde
-    const sequenceStr = nextSequence.toString().padStart(2, '0');
-    return `${projectNo}-WO-${sequenceStr}`;
-  }
-
-  // 2. Proje numarası yoksa, Global JOB üret (JOB-2024-0001)
+export async function generateJobNumber(): Promise<string> {
   const currentYear = new Date().getFullYear();
-  const yearPrefix = `JOB-${currentYear}-`;
+  const yearPrefix = `AS-${currentYear}-`;
 
+  // Bu yılki en yüksek numarayı bul
   const lastJob = await prisma.job.findFirst({
     where: {
       jobNo: {
@@ -59,7 +26,8 @@ export async function generateJobNumber(projectNo?: string | null): Promise<stri
   let nextSequence = 1;
 
   if (lastJob?.jobNo) {
-    const lastSequenceStr = lastJob.jobNo.split('-').pop();
+    const parts = lastJob.jobNo.split('-');
+    const lastSequenceStr = parts[parts.length - 1];
     if (lastSequenceStr) {
       nextSequence = parseInt(lastSequenceStr, 10) + 1;
     }
@@ -70,30 +38,52 @@ export async function generateJobNumber(projectNo?: string | null): Promise<stri
 }
 
 /**
- * İş adımları ve alt adımlar için hiyerarşik numaralar üretir.
- * @param jobNo Ana iş numarası
- * @param stepOrder Adım sırası
- * @param subStepOrder (Opsiyonel) Alt adım sırası
+ * İş adımları (Step / İş Emri) için hiyerarşik numara üretir.
+ * Format: AS-2026-0001-01
  */
-export function formatTaskNumber(jobNo: string, stepOrder: number, subStepOrder?: number): string {
-  // Issue #19: PRJ-2026-00125-WO-03-SUB-02
-  // jobNo zaten "PRJ-2026-00125-WO-03" formatında geliyorsa, sadece SUB ekleyeceğiz.
+export function generateStepNumber(jobNo: string, order: number): string {
+  const stepStr = order.toString().padStart(2, '0');
+  return `${jobNo}-${stepStr}`;
+}
 
-  // Eğer jobNo'da zaten SUB varsa (ki olmamalı, bu jobNo)
+/**
+ * Alt adımlar (SubStep / Alt İş Emri) için hiyerarşik numara üretir.
+ * Format: AS-2026-0001-01-01
+ */
+export function generateSubStepNumber(stepNo: string, order: number): string {
+  const subStepStr = order.toString().padStart(2, '0');
+  return `${stepNo}-${subStepStr}`;
+}
 
-  const stepStr = stepOrder.toString().padStart(2, '0');
+/**
+ * Tüm hiyerarşiyi toplu olarak hesaplayan yardımcı fonksiyon
+ */
+export async function updateHierarchyNumbers(jobId: string) {
+  const job = await prisma.job.findUnique({
+    where: { id: jobId },
+    include: {
+      steps: {
+        orderBy: { order: 'asc' },
+        include: {
+          subSteps: {
+            orderBy: { order: 'asc' }
+          }
+        }
+      }
+    }
+  });
 
-  if (subStepOrder !== undefined) {
-    const subStepStr = subStepOrder.toString().padStart(2, '0');
-    // Adım -> Alt Adım: ...-SUB-01-02 gibi mi yoksa ...-SUB-01-SUB-02 mi?
-    // Kullanıcı talebi: PRJ...-WO-03-SUB-02 (Bu alt iş emri)
-    // Ana iş emri: ...-WO-03
-    // Alt iş (step) emri muhtemelen ...-WO-03-SUB-01
-    // Alt-alt iş (substep) emri muhtemelen ...-WO-03-SUB-01-01 veya ...-SUB-01-SUB-01?
+  if (!job || !job.jobNo) return;
 
-    // Varsayım: Step -> SUB-XX, SubStep -> SUB-XX-YY
-    return `${jobNo}-SUB-${stepStr}-${subStepStr}`;
+  for (const step of job.steps) {
+    const stepNo = generateStepNumber(job.jobNo, step.order);
+    
+    // StepNo'yu veritabanına kaydetmek isterseniz (şema güncellendikten sonra)
+    // await prisma.jobStep.update({ where: { id: step.id }, data: { stepNo } });
+
+    for (const subStep of step.subSteps) {
+      const subStepNo = generateSubStepNumber(stepNo, subStep.order);
+      // await prisma.jobSubStep.update({ where: { id: subStep.id }, data: { subStepNo } });
+    }
   }
-
-  return `${jobNo}-SUB-${stepStr}`;
 }

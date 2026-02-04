@@ -1,6 +1,7 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
+  engineType    = "library"
 }
 
 datasource db {
@@ -137,6 +138,7 @@ model Job {
 model JobStep {
   id              String       @id @default(cuid())
   jobId           String
+  stepNo          String?      @unique // Örn: AS-2026-0001-01
   title           String
   description     String?
   isCompleted     Boolean      @default(false)
@@ -167,6 +169,7 @@ model JobStep {
 model JobSubStep {
   id              String      @id @default(cuid())
   stepId          String
+  subStepNo       String?     @unique // Örn: AS-2026-0001-01-01
   title           String
   isCompleted     Boolean     @default(false)
   completedAt     DateTime?

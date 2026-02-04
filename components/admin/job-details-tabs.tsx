@@ -207,6 +207,10 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                             </CardHeader>
                             <CardContent className="space-y-2 text-sm">
                                 <div className="flex justify-between">
+                                    <span className="text-gray-500">Kayıt ID:</span>
+                                    <span className="font-mono font-bold text-gray-700">#{job.id.slice(-6).toUpperCase()}</span>
+                                </div>
+                                <div className="flex justify-between">
                                     <span className="text-gray-500">Proje No:</span>
                                     <span className="font-bold text-orange-600">{job.jobNo || '-'}</span>
                                 </div>

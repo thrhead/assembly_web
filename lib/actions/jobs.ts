@@ -82,8 +82,7 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
 
   try {
     // Benzersiz iş numarasını üretelim
-    const cleanedProjectNo = validated.data.projectNo ? stripHtml(validated.data.projectNo) : null;
-    const jobNo = await generateJobNumber(cleanedProjectNo);
+    const jobNo = await generateJobNumber();
 
     const job = await prisma.$transaction(async (tx) => {
       // 1. Create Job
@@ -119,24 +118,35 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
       // 3. Create Steps & Substeps
       if (validated.data.steps && validated.data.steps.length > 0) {
         for (let i = 0; i < validated.data.steps.length; i++) {
-          const step = validated.data.steps[i]
+          const stepOrder = i + 1;
+          const stepData = validated.data.steps[i]
+          const stepNo = generateStepNumber(jobNo, stepOrder);
+
           const newStep = await tx.jobStep.create({
             data: {
               jobId: newJob.id,
-              title: stripHtml(step.title),
-              description: step.description ? sanitizeHtml(step.description) : null,
-              order: i + 1
+              stepNo: stepNo,
+              title: stripHtml(stepData.title),
+              description: stepData.description ? sanitizeHtml(stepData.description) : null,
+              order: stepOrder
             }
           })
 
-          if (step.subSteps && step.subSteps.length > 0) {
-            await tx.jobSubStep.createMany({
-              data: step.subSteps.map((ss, index) => ({
-                stepId: newStep.id,
-                title: stripHtml(ss.title),
-                order: index + 1
-              }))
-            })
+          if (stepData.subSteps && stepData.subSteps.length > 0) {
+            for (let j = 0; j < stepData.subSteps.length; j++) {
+              const subStepOrder = j + 1;
+              const subStepData = stepData.subSteps[j];
+              const subStepNo = generateSubStepNumber(stepNo, subStepOrder);
+
+              await tx.jobSubStep.create({
+                data: {
+                  stepId: newStep.id,
+                  subStepNo: subStepNo,
+                  title: stripHtml(subStepData.title),
+                  order: subStepOrder
+                }
+              })
+            }
           }
         }
       }
