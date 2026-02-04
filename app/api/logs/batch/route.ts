@@ -46,7 +46,7 @@ export async function POST(req: Request) {
               context: log.context || null,
               stack: log.stack || null,
             }
-          : null, // Use null instead of undefined for DB safety
+          : undefined, // Use undefined for Prisma compatibility
     }));
 
     if (logsToCreate.length > 0) {
