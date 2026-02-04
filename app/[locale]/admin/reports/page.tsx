@@ -38,6 +38,7 @@ import ReportFilters from "@/components/admin/reports/ReportFilters"
 import { TeamFinancialCharts } from "@/components/admin/team-financial-charts"
 import { TeamPerformanceTrend } from "@/components/admin/team-performance-trend"
 import { TeamMemberStats } from "@/components/admin/team-member-stats"
+import { cn } from "@/lib/utils"
 
 export default function AdminReportsPage(props: {
     searchParams?: Promise<{ from?: string; to?: string; jobStatus?: string; jobId?: string; category?: string; status?: string; tab?: string }>
