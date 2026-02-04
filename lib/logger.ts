@@ -1,4 +1,5 @@
 import { offlineDB, LocalLog } from './offline-db'
+import { prisma } from './db'
 
 export const LogLevel = {
     DEBUG: 'DEBUG',
@@ -42,16 +43,18 @@ class Logger {
 
     async log(level: string, message: string, context?: any, stack?: string) {
         try {
-            const newLog: LocalLog = {
-                level,
-                message,
-                context,
-                stack,
-                platform: typeof window !== 'undefined' ? 'web' : 'server',
-                createdAt: new Date().toISOString()
-            }
+            const platform = typeof window !== 'undefined' ? 'web' : 'server';
+            const timestamp = new Date();
 
             if (typeof window !== 'undefined') {
+                const newLog: LocalLog = {
+                    level,
+                    message,
+                    context,
+                    stack,
+                    platform: 'web',
+                    createdAt: timestamp.toISOString()
+                }
                 await offlineDB.systemLogs.add(newLog)
 
                 if (process.env.NODE_ENV === 'development') {
@@ -63,13 +66,29 @@ class Logger {
                     this.sync()
                 }
             } else {
-                // Server-side logging
+                // Server-side logging - Direct DB write
                 console.log(`[Server Logger] [${level}] ${message}`)
-                // We could also call the internal Batch sync logic here if needed
-                // But usually server logs go to stdout/Vercel logs
+                
+                try {
+                    await prisma.systemLog.create({
+                        data: {
+                            level,
+                            message,
+                            platform: 'server',
+                            createdAt: timestamp,
+                            meta: context || stack ? {
+                                context: context || null,
+                                stack: stack || null
+                            } : undefined
+                        }
+                    });
+                } catch (dbError) {
+                    // Avoid infinite loops if DB write fails
+                    console.error('CRITICAL: Could not persist server log to DB:', dbError);
+                }
             }
         } catch (error) {
-            console.error('Error adding log to repository:', error)
+            console.error('Error in logger.log:', error)
         }
     }
 

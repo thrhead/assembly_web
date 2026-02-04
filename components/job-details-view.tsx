@@ -43,6 +43,7 @@ interface JobDetailsProps {
         }[]
         steps: {
             id: string
+            stepNo?: string | null
             title: string
             isCompleted: boolean
             completedAt: Date | null
@@ -52,6 +53,7 @@ interface JobDetailsProps {
             } | null
             subSteps?: {
                 id: string
+                subStepNo?: string | null
                 title: string
                 isCompleted: boolean
                 order: number
@@ -113,10 +115,10 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                         <CardTitle className="flex justify-between items-start">
                             <div className="space-y-1">
                                 <div className="text-[10px] font-bold text-orange-600 uppercase tracking-widest bg-orange-50 px-2 py-0.5 rounded w-fit border border-orange-100 mb-1">
-                                    {job.jobNo || 'PROJE NO ATANMAMIŞ'}
+                                    PROJE NO: {job.jobNo || 'OTOMATİK'}
                                 </div>
                                 <h2 className="text-xl font-bold">{job.title}</h2>
-                                <p className="text-xs text-gray-400"># {job.id.slice(-8)}</p>
+                                <p className="text-xs text-gray-400">KAYIT ID: #{job.id.slice(-6).toUpperCase()}</p>
                                 
                                 <div className="mt-4 space-y-2">
                                     <div className="flex justify-between items-end">
@@ -275,7 +277,7 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                 <CardContent>
                     <div className="space-y-4">
                         {job.steps.map((step, index) => {
-                            const stepNo = formatTaskNumber(job.jobNo || 'JOB', index + 1)
+                            const stepNoDisplay = step.stepNo || formatTaskNumber(job.jobNo || 'JOB', index + 1)
                             const hasSubSteps = step.subSteps && step.subSteps.length > 0
                             const hasPhotos = step.photos && step.photos.length > 0
                             const isExpanded = expandedSteps[step.id] || false
@@ -303,8 +305,8 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-start">
                                                     <div className="flex-1">
-                                                        <div className="text-[10px] font-mono font-bold text-gray-400 mb-0.5 tracking-tighter">
-                                                            {stepNo}
+                                                        <div className="text-[10px] font-mono font-bold text-primary mb-0.5 tracking-tighter">
+                                                            İŞ EMRİ NO: {stepNoDisplay}
                                                         </div>
                                                         <p className={`font-semibold ${step.isCompleted ? 'text-gray-900' : 'text-gray-600'}`}>
                                                             {step.title}
@@ -366,7 +368,7 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                                                 <div>
                                                     <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                                                         <span className="h-px w-4 bg-gray-300" />
-                                                        Alt Görevler (Detay İş Emirleri)
+                                                        Alt İş Emirleri
                                                     </h4>
                                                     <div className="space-y-3">
                                                         {step.subSteps!.map((subStep, subIndex) => (
@@ -382,7 +384,7 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                                                                     </div>
                                                                     <div className="flex-1 flex flex-col">
                                                                         <span className="text-[9px] font-mono text-gray-400">
-                                                                            {formatTaskNumber(job.jobNo || 'JOB', index + 1, subIndex + 1)}
+                                                                            {subStep.subStepNo || formatTaskNumber(job.jobNo || 'JOB', index + 1, subIndex + 1)}
                                                                         </span>
                                                                         <span className={cn(
                                                                             "text-sm font-medium",

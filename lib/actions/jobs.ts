@@ -7,7 +7,7 @@ import { auth } from '@/lib/auth'
 import { sendJobNotification } from '@/lib/notification-helper'
 import { EventBus } from '@/lib/event-bus'
 import { sanitizeHtml, stripHtml } from '@/lib/security'
-import { generateJobNumber } from '@/lib/utils/job-number'
+import { generateJobNumber, generateStepNumber, generateSubStepNumber } from '@/lib/utils/job-number'
 
 const jobSchema = z.object({
   title: z.string().min(3, 'İş başlığı en az 3 karakter olmalıdır'),
@@ -89,7 +89,9 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
       const newJob = await tx.job.create({
         data: {
           jobNo: jobNo,
-          projectNo: validated.data.projectNo ? stripHtml(validated.data.projectNo) : null,
+          projectNo: (validated.data.projectNo && validated.data.projectNo.trim() !== '') 
+            ? stripHtml(validated.data.projectNo) 
+            : jobNo,
           title: stripHtml(validated.data.title),
           description: validated.data.description ? sanitizeHtml(validated.data.description) : null,
           customerId: validated.data.customerId,

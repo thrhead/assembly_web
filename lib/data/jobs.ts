@@ -27,6 +27,7 @@ export async function getJobs({ page = 1, limit = 20, filter }: GetJobsParams = 
 
     if (filter?.search) {
       where.OR = [
+        { id: { contains: filter.search, mode: "insensitive" } },
         { title: { contains: filter.search, mode: "insensitive" } },
         { jobNo: { contains: filter.search, mode: "insensitive" } },
         { customer: { company: { contains: filter.search, mode: "insensitive" } } },

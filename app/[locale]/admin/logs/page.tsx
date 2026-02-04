@@ -193,53 +193,59 @@ export default function LogsPage() {
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    logs.map((log: any) => (
-                                        <TableRow key={log.id} className="cursor-default group hover:bg-muted/30 transition-colors">
-                                            <TableCell className="py-4">{getLevelBadge(log.level)}</TableCell>
-                                            <TableCell className="py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="p-1.5 bg-background rounded-md border border-border/50 shadow-sm">
-                                                        {getPlatformIcon(log.platform)}
-                                                    </div>
-                                                    <span className="capitalize text-xs font-semibold">{log.platform}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="py-4">
-                                                <div className="flex flex-col gap-1 max-w-xl">
-                                                    <span className="font-medium text-sm leading-tight">{log.message}</span>
-                                                    {log.stack && (
-                                                        <details className="text-[10px] text-muted-foreground cursor-pointer">
-                                                            <summary className="hover:text-primary outline-none">View Stack Trace</summary>
-                                                            <pre className="mt-2 p-3 bg-secondary/50 rounded-lg overflow-x-auto border border-border font-mono whitespace-pre text-[9px]">
-                                                                {log.stack}
-                                                            </pre>
-                                                        </details>
-                                                    )}
-                                                    {log.context && (
-                                                        <div className="flex flex-wrap gap-1 mt-1">
-                                                            {Object.entries(log.context).map(([key, val]) => (
-                                                                <span key={key} className="text-[9px] bg-secondary px-1.5 py-0.5 rounded text-muted-foreground">
-                                                                    {key}: {typeof val === 'object' ? JSON.stringify(val) : String(val)}
-                                                                </span>
-                                                            ))}
+                                    logs.map((log: any) => {
+                                        const meta = log.meta || {};
+                                        const stack = meta.stack || log.stack;
+                                        const context = meta.context || log.context;
+
+                                        return (
+                                            <TableRow key={log.id} className="cursor-default group hover:bg-muted/30 transition-colors">
+                                                <TableCell className="py-4">{getLevelBadge(log.level)}</TableCell>
+                                                <TableCell className="py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="p-1.5 bg-background rounded-md border border-border/50 shadow-sm">
+                                                            {getPlatformIcon(log.platform)}
                                                         </div>
-                                                    )}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="py-4">
-                                                <div className="flex flex-col">
-                                                    <span className="font-bold text-sm">{log.user?.name || 'Sistem'}</span>
-                                                    <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">{log.user?.email || 'automatic@system'}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="py-4 text-right">
-                                                <div className="flex flex-col items-end">
-                                                    <span className="text-xs font-bold">{format(new Date(log.createdAt), 'HH:mm:ss')}</span>
-                                                    <span className="text-[10px] text-muted-foreground">{format(new Date(log.createdAt), 'dd MMM yyyy')}</span>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
+                                                        <span className="capitalize text-xs font-semibold">{log.platform}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    <div className="flex flex-col gap-1 max-w-xl">
+                                                        <span className="font-medium text-sm leading-tight">{log.message}</span>
+                                                        {stack && (
+                                                            <details className="text-[10px] text-muted-foreground cursor-pointer">
+                                                                <summary className="hover:text-primary outline-none">View Stack Trace</summary>
+                                                                <pre className="mt-2 p-3 bg-secondary/50 rounded-lg overflow-x-auto border border-border font-mono whitespace-pre text-[9px]">
+                                                                    {stack}
+                                                                </pre>
+                                                            </details>
+                                                        )}
+                                                        {context && (
+                                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                                {Object.entries(context).map(([key, val]) => (
+                                                                    <span key={key} className="text-[9px] bg-secondary px-1.5 py-0.5 rounded text-muted-foreground">
+                                                                        {key}: {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-4">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-sm">{log.user?.name || 'Sistem'}</span>
+                                                        <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">{log.user?.email || 'automatic@system'}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="py-4 text-right">
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="text-xs font-bold">{format(new Date(log.createdAt), 'HH:mm:ss')}</span>
+                                                        <span className="text-[10px] text-muted-foreground">{format(new Date(log.createdAt), 'dd MMM yyyy')}</span>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    })
                                 )}
                             </TableBody>
                         </Table>

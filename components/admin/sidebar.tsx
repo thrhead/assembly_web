@@ -74,14 +74,14 @@ const sidebarItems = [
     icon: TrendingUpIcon
   },
   {
-    title: 'Maliyet Raporu',
-    href: '/admin/reports/costs',
+    title: 'Raporlar',
+    href: '/admin/reports',
     icon: BarChart3Icon
   },
   {
-    title: 'Performans Raporu',
-    href: '/admin/reports/performance',
-    icon: PieChartIcon
+    title: 'Loglar',
+    href: '/admin/logs',
+    icon: FileTextIcon
   },
   {
     title: 'Entegrasyonlar',

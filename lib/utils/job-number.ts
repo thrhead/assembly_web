@@ -3,8 +3,9 @@ import { prisma } from "@/lib/db";
 /**
  * Yeni bir iş (Job) için benzersiz ve sıralı bir numara üretir.
  * Format: AS-YYYY-XXXX (Örn: AS-2026-0001)
+ * @param projectNo Eski uyumluluk için, şimdilik kullanılmıyor ancak imza bozulmaması için eklendi.
  */
-export async function generateJobNumber(): Promise<string> {
+export async function generateJobNumber(projectNo?: string | null): Promise<string> {
   const currentYear = new Date().getFullYear();
   const yearPrefix = `AS-${currentYear}-`;
 
@@ -56,6 +57,18 @@ export function generateSubStepNumber(stepNo: string, order: number): string {
 }
 
 /**
+ * Eski sistemle uyumluluk için yardımcı fonksiyon.
+ * Hiyerarşik numaralandırma mantığını tireli formatta döndürür.
+ */
+export function formatTaskNumber(jobNo: string, stepOrder: number, subStepOrder?: number): string {
+  const stepNo = generateStepNumber(jobNo, stepOrder);
+  if (subStepOrder !== undefined) {
+    return generateSubStepNumber(stepNo, subStepOrder);
+  }
+  return stepNo;
+}
+
+/**
  * Tüm hiyerarşiyi toplu olarak hesaplayan yardımcı fonksiyon
  */
 export async function updateHierarchyNumbers(jobId: string) {
@@ -78,12 +91,20 @@ export async function updateHierarchyNumbers(jobId: string) {
   for (const step of job.steps) {
     const stepNo = generateStepNumber(job.jobNo, step.order);
     
-    // StepNo'yu veritabanına kaydetmek isterseniz (şema güncellendikten sonra)
-    // await prisma.jobStep.update({ where: { id: step.id }, data: { stepNo } });
+    // Veritabanı sütunları eklendikten sonra burası aktif edilebilir
+    try {
+        await (prisma.jobStep as any).update({ where: { id: step.id }, data: { stepNo } });
+    } catch (e) {
+        console.warn("JobStep stepNo field might not exist yet in DB");
+    }
 
     for (const subStep of step.subSteps) {
       const subStepNo = generateSubStepNumber(stepNo, subStep.order);
-      // await prisma.jobSubStep.update({ where: { id: subStep.id }, data: { subStepNo } });
+      try {
+        await (prisma.jobSubStep as any).update({ where: { id: subStep.id }, data: { subStepNo } });
+      } catch (e) {
+        console.warn("JobSubStep subStepNo field might not exist yet in DB");
+      }
     }
   }
 }

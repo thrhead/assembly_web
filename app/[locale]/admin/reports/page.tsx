@@ -1,232 +1,307 @@
+'use client'
+
 import { auth } from "@/lib/auth"
 import { redirect } from "@/lib/navigation"
 import { Link } from "@/lib/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, BarChart3, TrendingUp, FileIcon, Users } from 'lucide-react'
+import { ArrowLeft, BarChart3, TrendingUp, FileIcon, Users, Wallet, Zap, Calendar, Briefcase as BriefcaseIcon, Clock, ChevronRight, LayoutDashboard, UserCog } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { getJobsForReport, getReportStats, getWeeklyCompletedSteps } from "@/lib/data/reports"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { 
+    getJobsForReport, 
+    getReportStats, 
+    getWeeklyCompletedSteps,
+    getJobStatusDistribution,
+    getTeamPerformance,
+    getJobsListForFilter,
+    getCategoriesForFilter,
+    getCostBreakdown,
+    getCostTrend,
+    getTotalCostTrend,
+    getPendingCostsList,
+    getCostList
+} from "@/lib/data/reports"
+import { getAllTeamsReports, getTeamDetailedReports } from "@/lib/data/teams"
 import WeeklyStepsChart from "@/components/admin/reports/charts/WeeklyStepsChart"
+import JobDistributionChart from "@/components/admin/reports/charts/JobDistributionChart"
+import TeamPerformanceChart from "@/components/admin/reports/charts/TeamPerformanceChart"
+import CategoryPieChart from "@/components/admin/reports/charts/CategoryPieChart"
+import CostTrendChart from "@/components/admin/reports/charts/CostTrendChart"
+import TotalCostChart from "@/components/admin/reports/charts/TotalCostChart"
+import CostListTable from "@/components/admin/reports/CostListTable"
+import KPICards from "@/components/admin/reports/KPICards"
+import { Progress } from "@/components/ui/progress"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Suspense, useState, useEffect } from "react"
+import ReportFilters from "@/components/admin/reports/ReportFilters"
+import { TeamFinancialCharts } from "@/components/admin/team-financial-charts"
+import { TeamPerformanceTrend } from "@/components/admin/team-performance-trend"
+import { TeamMemberStats } from "@/components/admin/team-member-stats"
 
-export default async function AdminReportsPage() {
-    const session = await auth()
+export default function AdminReportsPage(props: {
+    searchParams?: Promise<{ from?: string; to?: string; jobStatus?: string; jobId?: string; category?: string; status?: string; tab?: string }>
+}) {
+    const [loading, setLoading] = useState(true)
+    const [data, setData] = useState<any>(null)
+    const [selectedTeamId, setSelectedTeamTeamId] = useState<string | null>(null)
+    const [teamDetails, setTeamDetails] = useState<any>(null)
+    const [loadingTeam, setLoadingTeam] = useState(false)
 
-    if (session?.user?.role !== "ADMIN") {
-        redirect("/")
+    useEffect(() => {
+        async function load() {
+            setLoading(true)
+            const searchParams = await props.searchParams;
+            const fromStr = searchParams?.from;
+            const toStr = searchParams?.to;
+            const jobStatus = searchParams?.jobStatus || 'all';
+            const jobId = searchParams?.jobId || 'all';
+            const category = searchParams?.category || 'all';
+            const costStatus = searchParams?.status || 'all';
+
+            const from = fromStr ? new Date(fromStr) : new Date(0);
+            const to = toStr ? new Date(toStr) : new Date();
+            from.setHours(0, 0, 0, 0);
+            to.setHours(23, 59, 59, 999);
+
+            const [
+                generalStats, allJobs, weeklySteps, jobDistribution,
+                teamPerformance, filterJobs, filterCategories, costBreakdown,
+                costTrend, totalTrend, pendingCostsList, costList, teamsReportData
+            ] = await Promise.all([
+                getReportStats(from, to, jobStatus, jobId, category),
+                getJobsForReport(),
+                getWeeklyCompletedSteps(),
+                getJobStatusDistribution(from, to, jobStatus, jobId),
+                getTeamPerformance(from, to, jobStatus, jobId),
+                getJobsListForFilter(jobStatus),
+                getCategoriesForFilter(),
+                getCostBreakdown(from, to, costStatus, jobStatus, jobId, category),
+                getCostTrend(from, to, costStatus, jobStatus, jobId, category),
+                getTotalCostTrend(from, to, costStatus, jobStatus, jobId, category),
+                getPendingCostsList(from, to, jobStatus, jobId, category),
+                getCostList(from, to, costStatus, jobStatus, jobId, category),
+                getAllTeamsReports()
+            ])
+
+            setData({
+                generalStats, allJobs, weeklySteps, jobDistribution,
+                teamPerformance, filterJobs, filterCategories, costBreakdown,
+                costTrend, totalTrend, pendingCostsList, costList, teamsReportData,
+                activeTab: searchParams?.tab || 'overview'
+            })
+            setLoading(false)
+        }
+        load()
+    }, [props.searchParams])
+
+    const handleTeamSelect = async (teamId: string) => {
+        setLoadingTeam(true)
+        setSelectedTeamTeamId(teamId)
+        const details = await getTeamDetailedReports(teamId)
+        setTeamDetails(details)
+        setLoadingTeam(false)
     }
 
-    const [stats, allJobs, weeklySteps] = await Promise.all([
-        getReportStats(new Date(0), new Date()),
-        getJobsForReport(),
-        getWeeklyCompletedSteps()
-    ])
-
-    const { totalJobs, pendingJobs, inProgressJobs, completedJobs } = stats
-
-    // Status translations and colors
-    const statusConfig: any = {
-        'PENDING': { label: 'Beklemede', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200' },
-        'IN_PROGRESS': { label: 'Devam Ediyor', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200' },
-        'COMPLETED': { label: 'Tamamlandı', color: 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200' },
-        'ON_HOLD': { label: 'Beklemede', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200' }
-    }
-
-    return (
-        <div className="bg-background-light dark:bg-background-dark min-h-screen">
-            <div className="max-w-5xl mx-auto p-6 space-y-8">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link
-                            href="/admin"
-                            className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </Link>
-                        <div>
-                            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                                İş Raporları
-                            </h1>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Performans ve operasyonel analizler
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex gap-2">
-                        <Link href="/admin/reports/teams">
-                            <Button variant="outline" className="flex items-center gap-2">
-                                <Users className="w-4 h-4" />
-                                Ekip Raporları
-                            </Button>
-                        </Link>
-                        <Link href="/admin/reports/exports">
-                            <Button className="flex items-center gap-2">
-                                <FileIcon className="w-4 h-4" />
-                                Dışa Aktarmalar
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
-
-                {/* Performance Chart Section */}
-                <section className="animate-in fade-in slide-in-from-top-4 duration-500">
-                    <WeeklyStepsChart data={weeklySteps} categories={weeklySteps.categories} />
-                </section>
-
-                {/* Statistics Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Toplam İş
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex items-center justify-between">
-                                <span className="text-3xl font-bold text-slate-900 dark:text-slate-100">{totalJobs}</span>
-                                <Briefcase className="w-8 h-8 text-primary/20" />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Tamamlanan
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex items-center justify-between">
-                                <span className="text-3xl font-bold text-green-600 dark:text-green-500">{completedJobs}</span>
-                                <TrendingUp className="w-8 h-8 text-green-500/20" />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Devam Eden
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-blue-600 dark:text-blue-500">
-                                {inProgressJobs}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Bekleyen
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-500">
-                                {pendingJobs}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Jobs List */}
-                <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
-                    <CardHeader className="border-b border-slate-50 dark:border-slate-800">
-                        <div className="flex items-center gap-2">
-                            <BarChart3 className="w-5 h-5 text-primary" />
-                            <CardTitle>Tüm İşler ve Aşamaları</CardTitle>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                        <div className="divide-y divide-slate-50 dark:divide-slate-800">
-                            {allJobs.map((job) => {
-                                const totalSteps = job.steps.length
-                                const completedSteps = job.steps.filter(s => s.isCompleted).length
-                                const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0
-                                const teamName = job.assignments[0]?.team?.name || 'Ekip Atanmamış'
-                                const statusInfo = statusConfig[job.status] || statusConfig.PENDING
-
-                                return (
-                                    <div
-                                        key={job.id}
-                                        className="p-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-                                    >
-                                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
-                                            <div className="flex-1 space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    <Link
-                                                        href={`/admin/jobs/${job.id}`}
-                                                        className="text-lg font-bold text-slate-900 dark:text-slate-100 hover:text-primary transition-colors"
-                                                    >
-                                                        {job.title}
-                                                    </Link>
-                                                    <Badge className={`${statusInfo.color} text-[10px]`}>
-                                                        {statusInfo.label}
-                                                    </Badge>
-                                                </div>
-                                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
-                                                    <span className="flex items-center gap-1.5 font-medium">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                                                        Müşteri: {job.customer.company}
-                                                    </span>
-                                                    <span className="flex items-center gap-1.5">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-                                                        Ekip: {teamName}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Progress Section */}
-                                        <div className="space-y-3">
-                                            <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-                                                <span>AŞAMA İLERLEMESİ</span>
-                                                <span className="text-slate-900 dark:text-slate-100">
-                                                    {completedSteps} / {totalSteps} Adım (%{progress})
-                                                </span>
-                                            </div>
-                                            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
-                                                <div
-                                                    className="bg-primary h-2.5 rounded-full transition-all duration-1000"
-                                                    style={{ width: `${progress}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-
-                            {allJobs.length === 0 && (
-                                <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-                                    Henüz hiç iş kaydı bulunmuyor.
-                                </div>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+    if (loading || !data) {
+        return <div className="p-8 flex items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
-    )
-}
+    }
 
-// Minimal Briefcase icon for cards if lucide-react doesn't have it
-function Briefcase(props: any) {
+    const { generalStats, allJobs, weeklySteps, jobDistribution, teamPerformance, filterJobs, filterCategories, costBreakdown, costTrend, totalTrend, costList, teamsReportData, activeTab } = data
+    const { totalJobs, pendingJobs, inProgressJobs, completedJobs } = generalStats
+    const { reports: teamReports, globalStats: teamGlobalStats } = teamsReportData
+
+    // Chart Transforms
+    const jobData = Object.entries(jobDistribution).map(([status, count]) => ({ name: status, value: count as number }))
+    const teamPerfData = teamPerformance.map((t: any) => ({ name: t.teamName, jobs: t.totalJobs, time: Math.round(t.avgCompletionTimeMinutes) }))
+    const pieChartData = Object.entries(costBreakdown).map(([name, value]) => ({ name, value: value as number }))
+
     return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
-            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-        </svg>
+        <div className="space-y-6 p-6">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Link href="/admin">
+                        <Button variant="ghost" size="icon">
+                            <ArrowLeft className="w-5 h-5" />
+                        </Button>
+                    </Link>
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Raporlar ve Analiz</h1>
+                        <p className="text-muted-foreground">Tüm performans, maliyet ve ekip verileri tek panelde.</p>
+                    </div>
+                </div>
+                <div className="flex gap-2">
+                    <Link href="/admin/reports/exports">
+                        <Button variant="outline" className="gap-2">
+                            <FileIcon className="w-4 h-4" />
+                            Dışa Aktar
+                        </Button>
+                    </Link>
+                </div>
+            </div>
+
+            <Card className="p-4 bg-muted/30 border-none shadow-none">
+                <Suspense fallback={<div>Filtreler yükleniyor...</div>}>
+                    <ReportFilters jobs={filterJobs} categories={filterCategories} />
+                </Suspense>
+            </Card>
+
+            <Tabs defaultValue={activeTab} className="space-y-6">
+                <TabsList className="bg-muted p-1 rounded-lg">
+                    <TabsTrigger value="overview" className="gap-2"><BarChart3 className="w-4 h-4" /> Genel Bakış</TabsTrigger>
+                    <TabsTrigger value="performance" className="gap-2"><Zap className="w-4 h-4" /> Performans</TabsTrigger>
+                    <TabsTrigger value="costs" className="gap-2"><Wallet className="w-4 h-4" /> Maliyetler</TabsTrigger>
+                    <TabsTrigger value="teams" className="gap-2"><Users className="w-4 h-4" /> Ekipler</TabsTrigger>
+                </TabsList>
+
+                {/* Genel Bakış Sekmesi */}
+                <TabsContent value="overview" className="space-y-6">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Toplam İş</CardTitle></CardHeader>
+                            <CardContent><div className="text-2xl font-bold">{totalJobs}</div></CardContent>
+                        </Card>
+                        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Tamamlanan</CardTitle></CardHeader>
+                            <CardContent><div className="text-2xl font-bold text-green-600">{completedJobs}</div></CardContent>
+                        </Card>
+                        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Devam Eden</CardTitle></CardHeader>
+                            <CardContent><div className="text-2xl font-bold text-blue-600">{inProgressJobs}</div></CardContent>
+                        </Card>
+                        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Bekleyen</CardTitle></CardHeader>
+                            <CardContent><div className="text-2xl font-bold text-yellow-600">{pendingJobs}</div></CardContent>
+                        </Card>
+                    </div>
+                    <section className="bg-white dark:bg-slate-900 rounded-xl border p-6">
+                        <h3 className="text-lg font-semibold mb-4">Haftalık Tamamlanan Adımlar</h3>
+                        <WeeklyStepsChart data={weeklySteps} categories={weeklySteps.categories} />
+                    </section>
+                </TabsContent>
+
+                {/* Performans Sekmesi */}
+                <TabsContent value="performance" className="space-y-6">
+                    <KPICards stats={generalStats} />
+                    <div className="grid gap-4 md:grid-cols-7">
+                        <Card className="md:col-span-4"><CardHeader><CardTitle>Ekip Performansı</CardTitle></CardHeader>
+                            <CardContent><TeamPerformanceChart data={teamPerfData} /></CardContent>
+                        </Card>
+                        <Card className="md:col-span-3"><CardHeader><CardTitle>Durum Dağılımı</CardTitle></CardHeader>
+                            <CardContent><JobDistributionChart data={jobData} /></CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
+                {/* Maliyet Sekmesi */}
+                <TabsContent value="costs" className="space-y-6">
+                    <div className="grid gap-4 md:grid-cols-7">
+                        <Card className="md:col-span-4"><CardHeader><CardTitle>Maliyet Trendi</CardTitle></CardHeader>
+                            <CardContent><CostTrendChart data={costTrend.data} categories={costTrend.categories} /></CardContent>
+                        </Card>
+                        <Card className="md:col-span-3"><CardHeader><CardTitle>Kategori Dağılımı</CardTitle></CardHeader>
+                            <CardContent><CategoryPieChart data={pieChartData} /></CardContent>
+                        </Card>
+                    </div>
+                    <Card><CardHeader><CardTitle>Gider Kalemleri</CardTitle></CardHeader>
+                        <CardContent><CostListTable costs={costList} /></CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* Ekipler Sekmesi */}
+                <TabsContent value="teams" className="space-y-6">
+                    <div className="grid gap-4 md:grid-cols-4">
+                        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Ortalama Verimlilik</CardTitle></CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{teamGlobalStats.avgEfficiency}%</div>
+                                <Progress value={teamGlobalStats.avgEfficiency} className="mt-2 h-1.5" />
+                            </CardContent>
+                        </Card>
+                        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Toplam Harcama</CardTitle></CardHeader>
+                            <CardContent><div className="text-2xl font-bold">₺{teamGlobalStats.totalExpenses.toLocaleString('tr-TR')}</div></CardContent>
+                        </Card>
+                    </div>
+
+                    <div className="grid gap-6 md:grid-cols-12">
+                        {/* Sol: Ekip Listesi */}
+                        <Card className={cn(selectedTeamId ? "md:col-span-4" : "md:col-span-12")}>
+                            <CardHeader><CardTitle>Ekip Karşılaştırma</CardTitle></CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Ekip</TableHead>
+                                            {!selectedTeamId && <TableHead>Lider</TableHead>}
+                                            <TableHead className="text-center">Verimlilik</TableHead>
+                                            <TableHead className="text-right">İşlem</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {teamReports.map((report: any) => (
+                                            <TableRow key={report.id} className={cn(selectedTeamId === report.id && "bg-primary/5")}>
+                                                <TableCell className="font-bold">{report.name}</TableCell>
+                                                {!selectedTeamId && <TableCell>{report.leadName}</TableCell>}
+                                                <TableCell className="text-center">%{report.stats.efficiencyScore}</TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button variant="ghost" size="sm" onClick={() => handleTeamSelect(report.id)}>
+                                                        {selectedTeamId === report.id ? "Seçili" : "Detay"}
+                                                        <ChevronRight className="ml-1 h-4 w-4" />
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+
+                        {/* Sağ: Seçili Ekip Detay Raporu */}
+                        {selectedTeamId && (
+                            <div className="md:col-span-8 space-y-6">
+                                {loadingTeam ? (
+                                    <div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
+                                ) : teamDetails && (
+                                    <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-6">
+                                        {/* Detaylı KPI Kartları */}
+                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                            <Card className="bg-primary/5 border-none shadow-none">
+                                                <CardHeader className="p-3 pb-0"><CardTitle className="text-[10px] uppercase text-muted-foreground">Verimlilik</CardTitle></CardHeader>
+                                                <CardContent className="p-3 pt-1"><div className="text-xl font-bold text-primary">%{teamDetails.stats.efficiencyScore}</div></CardContent>
+                                            </Card>
+                                            <Card className="bg-blue-50 border-none shadow-none text-blue-700">
+                                                <CardHeader className="p-3 pb-0"><CardTitle className="text-[10px] uppercase">Çalışma Saati</CardTitle></CardHeader>
+                                                <CardContent className="p-3 pt-1"><div className="text-xl font-bold">{teamDetails.stats.totalWorkingHours}s</div></CardContent>
+                                            </Card>
+                                            <Card className="bg-green-50 border-none shadow-none text-green-700">
+                                                <CardHeader className="p-3 pb-0"><CardTitle className="text-[10px] uppercase">Başarı</CardTitle></CardHeader>
+                                                <CardContent className="p-3 pt-1"><div className="text-xl font-bold">%{teamDetails.stats.successRate}</div></CardContent>
+                                            </Card>
+                                            <Card className="bg-orange-50 border-none shadow-none text-orange-700">
+                                                <CardHeader className="p-3 pb-0"><CardTitle className="text-[10px] uppercase">Toplam Gider</CardTitle></CardHeader>
+                                                <CardContent className="p-3 pt-1"><div className="text-xl font-bold">₺{teamDetails.stats.totalExpenses.toLocaleString('tr-TR')}</div></CardContent>
+                                            </Card>
+                                        </div>
+
+                                        <div className="grid gap-6 md:grid-cols-2">
+                                            <Card>
+                                                <CardHeader><CardTitle className="text-sm">Performans Trendi</CardTitle></CardHeader>
+                                                <CardContent><TeamPerformanceTrend data={teamDetails.stats.monthlyTrend} /></CardContent>
+                                            </Card>
+                                            <Card>
+                                                <CardHeader><CardTitle className="text-sm">Gider Dağılımı</CardTitle></CardHeader>
+                                                <CardContent><TeamFinancialCharts data={teamDetails.stats.categoryBreakdown} /></CardContent>
+                                            </Card>
+                                        </div>
+
+                                        <Card>
+                                            <CardHeader><CardTitle className="text-sm">Üye Performansları</CardTitle></CardHeader>
+                                            <CardContent><TeamMemberStats members={teamDetails.stats.memberStats} /></CardContent>
+                                        </Card>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </TabsContent>
+            </Tabs>
+        </div>
     )
 }
