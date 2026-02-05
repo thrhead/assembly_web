@@ -57,7 +57,7 @@ export async function POST(req: Request) {
                 context: log.context || null,
                 stack: log.stack || null,
               }
-            : undefined, // Use undefined for Prisma compatibility
+            : null, // Use null instead of undefined to ensure all objects have the same shape for createMany
       };
     });
 
