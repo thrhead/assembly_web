@@ -22,13 +22,16 @@ const logSchema = z.object({
 const batchSchema = z.array(logSchema);
 
 export async function POST(req: Request) {
+  console.log("[LOG_BATCH] Request received");
   try {
     const session = await auth();
-
     const body = await req.json();
+    console.log(`[LOG_BATCH] Processing ${Array.isArray(body) ? body.length : 0} logs`);
+    
     const parsed = batchSchema.safeParse(body);
 
     if (!parsed.success) {
+        console.error("[LOG_BATCH] Validation failed:", parsed.error.format());
         return NextResponse.json({ error: parsed.error.format() }, { status: 400 });
     }
 
@@ -62,10 +65,17 @@ export async function POST(req: Request) {
     });
 
     if (logsToCreate.length > 0) {
-        await prisma.systemLog.createMany({
-            data: logsToCreate,
-            skipDuplicates: true
-        });
+        console.log(`[LOG_BATCH] Attempting to create ${logsToCreate.length} logs in DB`);
+        try {
+            const result = await prisma.systemLog.createMany({
+                data: logsToCreate,
+                skipDuplicates: true
+            });
+            console.log(`[LOG_BATCH] Successfully created ${result.count} logs`);
+        } catch (dbError) {
+            console.error("[LOG_BATCH] Database error:", dbError);
+            throw dbError; // Re-throw to be caught by outer try-catch
+        }
     }
 
     return NextResponse.json({ success: true, count: logsToCreate.length }, { status: 201 });
