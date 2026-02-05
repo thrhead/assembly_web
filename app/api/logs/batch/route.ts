@@ -34,20 +34,32 @@ export async function POST(req: Request) {
 
     const logs = parsed.data;
 
+    // Protection against future dates (e.g. wrong device clock) which break sorting/visibility
+    const now = new Date();
+    const futureThreshold = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes buffer
+
     // Map fields to match the Prisma model exactly
-    const logsToCreate = logs.map((log) => ({
-      level: ['DEBUG', 'INFO', 'WARN', 'ERROR', 'AUDIT'].includes(log.level) ? log.level : 'INFO',
-      message: log.message || 'No message',
-      platform: (log.platform as string) || 'web',
-      createdAt: log.createdAt,
-      userId: session?.user?.id || null,
-      meta: (log.context || log.stack) 
-          ? {
-              context: log.context || null,
-              stack: log.stack || null,
-            }
-          : undefined, // Use undefined for Prisma compatibility
-    }));
+    const logsToCreate = logs.map((log) => {
+      let finalDate = log.createdAt;
+      // If date is in the future, reset to server time to preserve log order
+      if (finalDate > futureThreshold) {
+          finalDate = new Date();
+      }
+
+      return {
+        level: ['DEBUG', 'INFO', 'WARN', 'ERROR', 'AUDIT'].includes(log.level) ? log.level : 'INFO',
+        message: log.message || 'No message',
+        platform: (log.platform as string) || 'web',
+        createdAt: finalDate,
+        userId: session?.user?.id || null,
+        meta: (log.context || log.stack)
+            ? {
+                context: log.context || null,
+                stack: log.stack || null,
+              }
+            : undefined, // Use undefined for Prisma compatibility
+      };
+    });
 
     if (logsToCreate.length > 0) {
         await prisma.systemLog.createMany({
