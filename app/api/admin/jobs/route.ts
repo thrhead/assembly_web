@@ -7,6 +7,7 @@ import { jobCreationSchema } from '@/lib/validations-edge'
 import { sendJobNotification } from '@/lib/notification-helper';
 import { EventBus } from '@/lib/event-bus';
 import { sanitizeHtml, stripHtml } from '@/lib/security';
+import { logger } from '@/lib/logger';
 
 // Helper function to build where clause for filtering
 function buildJobFilter(searchParams: URLSearchParams) {
@@ -221,9 +222,20 @@ export async function POST(req: Request) {
         // Trigger side effects
         await EventBus.emit('job.created', newJob);
 
+        // LOGGING: Audit log for job creation
+        logger.audit(`New job created: ${newJob.title}`, {
+            jobId: newJob.id,
+            creatorId: session.user.id,
+            customerId: newJob.customerId
+        });
+
         return NextResponse.json(newJob, { status: 201 })
     } catch (error) {
         console.error('Job creation error:', error)
+        
+        // LOGGING: Error log for job creation failure
+        logger.error('Failed to create job', { error: (error as Error).message });
+
         if (error instanceof z.ZodError) {
             const errorMessage = error.issues.map(issue => issue.message).join(', ')
             return NextResponse.json({ error: errorMessage, details: error.issues }, { status: 400 })
