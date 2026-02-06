@@ -1,3 +1,5 @@
+"use server"
+
 import { prisma } from "@/lib/db";
 
 export async function getJobsForReport() {
@@ -316,7 +318,7 @@ export async function getTeamPerformance(startDate: Date, endDate: Date, jobStat
 export async function getWeeklyCompletedSteps() {
     const today = new Date();
     today.setHours(23, 59, 59, 999);
-    
+
     const last7Days = new Date(today);
     last7Days.setDate(today.getDate() - 7);
     last7Days.setHours(0, 0, 0, 0);
@@ -340,7 +342,7 @@ export async function getWeeklyCompletedSteps() {
     });
 
     const categories = ['Hazırlık', 'Montaj', 'Test', 'Paketleme', 'Diğer'];
-    
+
     const formatData = (startDate: Date, endDate: Date) => {
         const days: Record<string, any> = {};
         for (let i = 0; i < 7; i++) {

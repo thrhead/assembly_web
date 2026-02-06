@@ -9,16 +9,23 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const notifications = await prisma.notification.findMany({
-      where: {
-        userId: session.user.id,
-        isRead: false
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 50
-    })
+    const [notifications, unreadCount] = await Promise.all([
+      prisma.notification.findMany({
+        where: {
+          userId: session.user.id
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10
+      }),
+      prisma.notification.count({
+        where: {
+          userId: session.user.id,
+          isRead: false
+        }
+      })
+    ])
 
-    return NextResponse.json(notifications)
+    return NextResponse.json({ notifications, unreadCount })
   } catch (error) {
     console.error('Notifications fetch error:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
