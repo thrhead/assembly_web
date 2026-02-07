@@ -4,5 +4,11 @@
     "framework": "nextjs",
     "regions": [
         "arn1"
+    ],
+    "crons": [
+        {
+            "path": "/api/cron/webhooks",
+            "schedule": "*/10 * * * *"
+        }
     ]
 }

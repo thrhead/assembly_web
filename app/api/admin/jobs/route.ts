@@ -1,4 +1,5 @@
 
+
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAdminOrManager } from '@/lib/auth-helper'
@@ -8,6 +9,7 @@ import { sendJobNotification } from '@/lib/notification-helper';
 import { EventBus } from '@/lib/event-bus';
 import { sanitizeHtml, stripHtml } from '@/lib/security';
 import { logger } from '@/lib/logger';
+import { logAudit, AuditAction } from '@/lib/audit';
 
 // Helper function to build where clause for filtering
 function buildJobFilter(searchParams: URLSearchParams) {
@@ -100,6 +102,8 @@ export async function GET(req: Request) {
             try {
                 return {
                     id: job.id,
+                    jobNo: job.jobNo || '', // Add jobNo to response for frontend
+                    projectNo: job.projectNo || '', // Add projectNo to response for frontend
                     title: job.title || '',
                     status: job.status || 'PENDING',
                     acceptanceStatus: job.acceptanceStatus || 'PENDING',
@@ -146,8 +150,36 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const body = await req.json()
-        const data = jobCreationSchema.parse(body)
+        let body;
+        try {
+            body = await req.json()
+        } catch (jsonError) {
+            console.error('JSON Parse Error:', jsonError);
+            return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
+        }
+
+        console.log('DEBUG: Received Job Creation Payload:', JSON.stringify(body, null, 2));
+
+        // Pre-processing for Mobile: Convert string numbers to actual numbers if needed
+        if (body.budget && typeof body.budget === 'string') {
+            body.budget = parseFloat(body.budget);
+        }
+        if (body.estimatedDuration && typeof body.estimatedDuration === 'string') {
+            body.estimatedDuration = parseInt(body.estimatedDuration, 10);
+        }
+
+        // Ensure steps is array if it exists but is empty/null which might confuse Zod
+        if (body.steps === null) body.steps = undefined;
+
+        const parseResult = jobCreationSchema.safeParse(body)
+
+        if (!parseResult.success) {
+            console.error('Validation Error:', JSON.stringify(parseResult.error.format(), null, 2));
+            const errorMessage = parseResult.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`).join(', ')
+            return NextResponse.json({ error: `Validation Failed: ${errorMessage}`, details: parseResult.error.issues }, { status: 400 })
+        }
+
+        const data = parseResult.data;
 
         // Verify existence of foreign keys
         const customerExists = await prisma.customer.findUnique({ where: { id: data.customerId } })
@@ -223,23 +255,21 @@ export async function POST(req: Request) {
         await EventBus.emit('job.created', newJob);
 
         // LOGGING: Audit log for job creation
-        logger.audit(`New job created: ${newJob.title}`, {
+        await logAudit(session.user.id, AuditAction.JOB_CREATE, {
             jobId: newJob.id,
-            creatorId: session.user.id,
-            customerId: newJob.customerId
+            title: newJob.title,
+            customerId: newJob.customer.id,
+            jobNo: newJob.jobNo
         });
 
         return NextResponse.json(newJob, { status: 201 })
-    } catch (error) {
+    } catch (error: any) {
         console.error('Job creation error:', error)
-        
-        // LOGGING: Error log for job creation failure
-        logger.error('Failed to create job', { error: (error as Error).message });
 
-        if (error instanceof z.ZodError) {
-            const errorMessage = error.issues.map(issue => issue.message).join(', ')
-            return NextResponse.json({ error: errorMessage, details: error.issues }, { status: 400 })
-        }
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        // LOGGING: Error log for job creation failure
+        logger.error('Failed to create job', { error: error.message, stack: error.stack });
+
+        return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 })
     }
 }
+

@@ -1,9 +1,7 @@
+import DOMPurify from 'isomorphic-dompurify';
+
 /**
- * Sanitizes a plain string by removing all HTML tags using regex.
- * This is a lightweight server-safe alternative to DOMPurify for basic needs.
- * 
- * @param text The text to sanitize
- * @returns Plain text without HTML
+ * Strips all HTML tags from a string.
  */
 export function stripHtml(text: string): string {
     if (!text) return '';
@@ -11,17 +9,13 @@ export function stripHtml(text: string): string {
 }
 
 /**
- * Basic HTML sanitizer that prevents common XSS but is lightweight.
- * For now, it strips all tags to ensure safety and avoid jsdom dependency issues on server.
- * 
- * @param html The raw HTML string
- * @param mode 'STRICT' or 'BASIC'
- * @returns Sanitized string
+ * Sanitizes HTML content using isomorphic-dompurify to prevent XSS.
+ * Safe for use in both Node.js (Server) and Browser environments.
  */
-export function sanitizeHtml(html: string, mode: 'STRICT' | 'BASIC' = 'BASIC'): string {
+export function sanitizeHtml(html: string): string {
     if (!html) return '';
-    
-    // For now, both modes strip all tags to avoid the jsdom/DOMPurify ESM issue on Vercel
-    // In the future, we can implement a safe white-list based regex or use a server-safe library
-    return stripHtml(html);
+    return DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li'],
+        ALLOWED_ATTR: ['href', 'target']
+    });
 }
