@@ -121,7 +121,7 @@ npx expo start
 ## 📄 Lisans
 Bu proje özel kullanım içindir. Ticari kullanım ve dağıtım hakları saklıdır.
 
-**Son Güncelleme:** 28 Aralık 2025
-**Versiyon:** 2.6.0 (Advanced Reporting & TDD Setup)
+**Son Güncelleme:** 07 Şubat 2026
+**Versiyon:** 2.7.0 (Enterprise Features: Audit, API Docs, Webhooks)
 
-<!-- Trigger Vercel Build: 2026-01-27 -->
+<!-- Trigger Vercel Build: 2026-02-07 13:50 -->
