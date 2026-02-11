@@ -12,8 +12,12 @@ export async function GET(request: Request) {
         // Fetch all teams with their members and associated jobs
         const teams = await prisma.team.findMany({
             include: {
-                leader: true,
-                members: true,
+                lead: true,
+                members: {
+                    include: {
+                        user: true
+                    }
+                },
                 assignments: {
                     include: {
                         job: true
@@ -39,7 +43,7 @@ export async function GET(request: Request) {
             return {
                 id: team.id,
                 name: team.name,
-                leadName: team.leader?.name || 'Belirlenmedi',
+                leadName: team.lead?.name || 'Belirlenmedi',
                 stats: {
                     completedJobs,
                     totalJobs,
@@ -53,7 +57,7 @@ export async function GET(request: Request) {
         const globalStats = {
             totalTeams: teams.length,
             avgEfficiency: reports.length > 0 ? Math.round(reports.reduce((acc, r) => acc + r.stats.efficiencyScore, 0) / reports.length) : 0,
-            totalEmployees: teams.reduce((acc, t) => acc + t.members.length, 0) + teams.filter(t => t.leaderId).length
+            totalEmployees: teams.reduce((acc, t) => acc + t.members.length, 0) + teams.filter(t => t.leadId).length
         };
 
         return NextResponse.json({
