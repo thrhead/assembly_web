@@ -1,14 +1,9 @@
 {
-    "buildCommand": "prisma generate && next build --webpack",
+    "buildCommand": "cd apps/web && npm run build",
+    "outputDirectory": "apps/web/.next",
     "installCommand": "npm install",
     "framework": "nextjs",
     "regions": [
         "arn1"
-    ],
-    "crons": [
-        {
-            "path": "/api/cron/webhooks",
-            "schedule": "*/10 * * * *"
-        }
     ]
 }
