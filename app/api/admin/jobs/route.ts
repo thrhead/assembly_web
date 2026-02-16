@@ -197,27 +197,27 @@ export async function POST(req: Request) {
         const newJob = await prisma.job.create({
             data: {
                 title: stripHtml(data.title),
-                description: data.description ? sanitizeHtml(data.description) : null,
+                description: data.description ? sanitizeHtml(data.description) : undefined,
                 customerId: data.customerId,
                 creatorId: session.user.id,
                 priority: data.priority,
-                location: data.location ? stripHtml(data.location) : null,
-                scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : null,
-                budget: data.budget,
-                estimatedDuration: data.estimatedDuration,
+                location: data.location ? stripHtml(data.location) : undefined,
+                scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : undefined,
+                budget: data.budget ?? undefined,
+                estimatedDuration: data.estimatedDuration ?? undefined,
                 status: 'PENDING',
-                steps: data.steps
+                steps: data.steps && data.steps.length > 0
                     ? {
                         create: data.steps.map((step, idx) => ({
                             title: stripHtml(step.title),
-                            description: step.description ? sanitizeHtml(step.description) : null,
-                            order: idx + 1,
-                            subSteps: step.subSteps
+                            description: step.description ? sanitizeHtml(step.description) : undefined,
+                            order: step.order || (idx + 1),
+                            subSteps: step.subSteps && step.subSteps.length > 0
                                 ? {
                                     create: step.subSteps.map((sub, sIdx) => ({
                                         title: stripHtml(sub.title),
-                                        description: sub.description ? sanitizeHtml(sub.description) : null,
-                                        order: sIdx + 1
+                                        description: sub.description ? sanitizeHtml(sub.description) : undefined,
+                                        order: sub.order || (sIdx + 1)
                                     }))
                                 }
                                 : undefined
